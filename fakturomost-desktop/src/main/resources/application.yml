@@ -1,0 +1,6 @@
+spring:
+  main:
+    web-application-type: none
+    banner-mode: off
+fakturomost:
+  version: 0.1.0-SNAPSHOT
