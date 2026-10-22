@@ -1,0 +1,15 @@
+# Location in repo: .github/dependabot.yml
+# Weekly PRs for outdated GitHub Actions and Maven dependencies
+# (covers the "bump Spring Boot before 4.0 support ends" open item).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
