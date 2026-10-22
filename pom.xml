@@ -53,7 +53,71 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.5.2</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.6.3</version>
+                </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <!-- no <version>: inherited from pluginManagement above -->
+                <executions>
+                    <execution>
+                        <id>enforce-build-rules</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <!-- default phase: validate, so it fails before compilation -->
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>[21,)</version>
+                                </requireJavaVersion>
+                                <requireMavenVersion>
+                                    <!-- keep in line with .mvn/wrapper/maven-wrapper.properties -->
+                                    <version>[3.9,)</version>
+                                </requireMavenVersion>
+
+                                <bannedDependencies>
+                                    <message>
+                                        Fakturomost runs Spring Boot with WebApplicationType.NONE.
+                                        Embedded web servers must not be on the classpath (see ADR 0003).
+                                    </message>
+                                    <searchTransitive>true</searchTransitive>
+                                    <excludes>
+                                        <!-- Spring Boot web starters (web, webmvc, webflux, websocket, webservices) -->
+                                        <exclude>org.springframework.boot:spring-boot-starter-web*</exclude>
+                                        <exclude>org.springframework.boot:spring-boot-starter-tomcat</exclude>
+                                        <exclude>org.springframework.boot:spring-boot-starter-jetty</exclude>
+                                        <exclude>org.springframework.boot:spring-boot-starter-undertow</exclude>
+                                        <exclude>org.springframework.boot:spring-boot-starter-reactor-netty</exclude>
+
+                                        <!-- Spring Boot 4 server modules -->
+                                        <exclude>org.springframework.boot:spring-boot-web-server</exclude>
+                                        <exclude>org.springframework.boot:spring-boot-tomcat</exclude>
+                                        <exclude>org.springframework.boot:spring-boot-jetty</exclude>
+                                        <exclude>org.springframework.boot:spring-boot-undertow</exclude>
+                                        <exclude>org.springframework.boot:spring-boot-reactor-netty</exclude>
+
+                                        <!-- The servers themselves, in case they arrive via a non-Spring route -->
+                                        <exclude>org.apache.tomcat.embed:tomcat-embed-core</exclude>
+                                        <exclude>org.apache.tomcat.embed:tomcat-embed-websocket</exclude>
+                                        <exclude>org.eclipse.jetty:jetty-server</exclude>
+                                        <exclude>org.eclipse.jetty.ee*</exclude>
+                                        <exclude>io.undertow:undertow-core</exclude>
+                                        <exclude>io.projectreactor.netty:reactor-netty-http</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
     </build>
 </project>
