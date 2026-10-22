@@ -19,7 +19,7 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>4.0.6</spring-boot.version>   <!-- bump to newest 4.x -->
-        <javafx.version>21.0.8</javafx.version>             <!-- newest 21.0.x on Maven Central -->
+        <javafx.version>27</javafx.version>             <!-- newest 21.0.x on Maven Central -->
     </properties>
 
     <dependencyManagement>
