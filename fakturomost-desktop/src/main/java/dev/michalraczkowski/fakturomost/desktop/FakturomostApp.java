@@ -16,9 +16,7 @@ public class FakturomostApp extends Application {
     @Override
     public void init() {
         // Runs on the JavaFX launcher thread, NOT the FX Application Thread.
-        context = new SpringApplicationBuilder(DesktopConfiguration.class)
-                .web(WebApplicationType.NONE)
-                .run(getParameters().getRaw().toArray(String[]::new));
+        context = DesktopContext.start(getParameters().getRaw().toArray(String[]::new));
     }
 
     @Override
