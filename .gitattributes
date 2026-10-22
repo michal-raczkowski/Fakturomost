@@ -1,0 +1,11 @@
+# Location in repo: .gitattributes (note the leading dot)
+# Normalise line endings so the Maven Wrapper works on both Linux and Windows runners.
+* text=auto
+
+mvnw        text eol=lf
+*.sh        text eol=lf
+mvnw.cmd    text eol=crlf
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+
+*.jar       binary
