@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fakturomost demo data: synthetic invoice in the older FA(2) format. All names, tax numbers and KSeF numbers are fictitious. -->
+<Faktura xmlns="http://crd.gov.pl/wzor/2023/06/29/12648/">
+  <Naglowek>
+    <KodFormularza kodSystemowy="FA (2)" wersjaSchemy="1-0E">FA</KodFormularza>
+    <WariantFormularza>2</WariantFormularza>
+    <DataWytworzeniaFa>2023-11-02T09:00:00</DataWytworzeniaFa>
+    <SystemInfo>Fakturomost demo data</SystemInfo>
+  </Naglowek>
+  <Podmiot1>
+    <DaneIdentyfikacyjne>
+      <NIP>9999999999</NIP>
+      <Nazwa>Fikcyjne Studio Projektowe sp. z o.o.</Nazwa>
+    </DaneIdentyfikacyjne>
+    <Adres>
+      <KodKraju>PL</KodKraju>
+      <AdresL1>ul. Przykładowa 10</AdresL1>
+      <AdresL2>00-001 Warszawa</AdresL2>
+    </Adres>
+  </Podmiot1>
+  <Podmiot2>
+    <DaneIdentyfikacyjne>
+      <NIP>5550000001</NIP>
+      <Nazwa>Kawiarnia Pod Zmyślonym Dachem s.c.</Nazwa>
+    </DaneIdentyfikacyjne>
+    <Adres>
+      <KodKraju>PL</KodKraju>
+      <AdresL1>ul. Nieistniejąca 5</AdresL1>
+      <AdresL2>30-001 Kraków</AdresL2>
+    </Adres>
+    <JST>2</JST>
+    <GV>2</GV>
+  </Podmiot2>
+  <Fa>
+    <KodWaluty>PLN</KodWaluty>
+    <P_1>2023-11-02</P_1>
+    <P_1M>Warszawa</P_1M>
+    <P_2>FV/2023/11/0001</P_2>
+    <P_6>2023-11-02</P_6>
+    <P_13_1>100.00</P_13_1>
+    <P_14_1>23.00</P_14_1>
+    <P_15>123.00</P_15>
+    <Adnotacje>
+      <P_16>2</P_16>
+      <P_17>2</P_17>
+      <P_18>2</P_18>
+      <P_18A>2</P_18A>
+      <Zwolnienie>
+        <P_19N>1</P_19N>
+      </Zwolnienie>
+      <NoweSrodkiTransportu>
+        <P_22N>1</P_22N>
+      </NoweSrodkiTransportu>
+      <P_23>2</P_23>
+      <PMarzy>
+        <P_PMarzyN>1</P_PMarzyN>
+      </PMarzy>
+    </Adnotacje>
+    <RodzajFaktury>VAT</RodzajFaktury>
+    <FaWiersz>
+      <NrWierszaFa>1</NrWierszaFa>
+      <P_7>Konsultacja projektowa</P_7>
+      <P_8A>h</P_8A>
+      <P_8B>1</P_8B>
+      <P_9A>100.00</P_9A>
+      <P_11>100.00</P_11>
+      <P_12>23</P_12>
+    </FaWiersz>
+  </Fa>
+</Faktura>
