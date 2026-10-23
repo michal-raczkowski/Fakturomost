@@ -15,14 +15,16 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
- * Extracts an {@link Invoice} from the bytes of one FA(3) XML document.
+ * Validates one FA(3) XML document against the official schema and extracts an {@link Invoice}.
  *
- * <p>Scope: reads the fields Fakturomost displays and exports; it does not check every schema rule
- * (that is XSD validation's job) and never checks business rules or arithmetic — amounts and dates
- * are reported as written. It only rejects what it cannot represent.
+ * <p>Steps: size limit → hardened XML parsing → format detection ({@code Unsupported} for anything
+ * that is not FA(3) 1-0E) → XSD validation against the bundled schemas (no network) → extraction.
+ *
+ * <p>Never checks business rules or arithmetic — amounts and dates are reported as written.
  *
  * <p>Stateless and thread-safe; one instance can be shared.
  */
@@ -35,22 +37,36 @@ public final class Fa3Parser {
     public static final int DEFAULT_MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
 
     private final int maxDocumentBytes;
+    private final Fa3Schema schema;
 
     public Fa3Parser() {
         this(DEFAULT_MAX_DOCUMENT_BYTES);
     }
 
     public Fa3Parser(int maxDocumentBytes) {
+        this(maxDocumentBytes, Fa3Schema.bundled());
+    }
+
+    private Fa3Parser(int maxDocumentBytes, Fa3Schema schema) {
         if (maxDocumentBytes <= 0) {
             throw new IllegalArgumentException("maxDocumentBytes must be positive");
         }
         this.maxDocumentBytes = maxDocumentBytes;
+        this.schema = schema;
+    }
+
+    /**
+     * A parser that skips XSD validation. <strong>Tests only</strong>: it exists so the extraction
+     * code's own defensive checks can be exercised with documents the schema would reject first.
+     */
+    static Fa3Parser withoutSchemaValidation() {
+        return new Fa3Parser(DEFAULT_MAX_DOCUMENT_BYTES, null);
     }
 
     /**
      * @param xml the raw document bytes, exactly as downloaded; not modified
      * @throws UnsupportedFormatException well-formed XML that is not FA(3) 1-0E
-     * @throws InvalidInvoiceException    malformed, oversized, or missing/malformed required fields
+     * @throws InvalidInvoiceException    malformed, oversized, schema-invalid, or not extractable
      */
     public Invoice parse(byte[] xml) throws InvoiceParseException {
         Objects.requireNonNull(xml, "xml");
@@ -58,8 +74,11 @@ public final class Fa3Parser {
             throw new InvalidInvoiceException(
                     "Document is larger than the limit of " + maxDocumentBytes + " bytes");
         }
-        Element rootElement = SecureXml.parse(xml).getDocumentElement();
-        Fa3Element root = checkFormat(rootElement);
+        Document document = SecureXml.parse(xml);
+        Fa3Element root = checkFormat(document.getDocumentElement());
+        if (schema != null) {
+            schema.validate(document);
+        }
 
         Fa3Element fa = root.requiredChild("Fa");
         InvoiceType type = invoiceType(fa);

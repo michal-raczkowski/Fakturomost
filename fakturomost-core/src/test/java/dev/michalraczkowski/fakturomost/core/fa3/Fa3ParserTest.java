@@ -33,6 +33,12 @@ class Fa3ParserTest {
 
     private final Fa3Parser parser = new Fa3Parser();
 
+    /**
+     * Skips XSD validation, to reach the extraction code's own checks with documents the schema
+     * would reject first. Schema behaviour itself is covered by {@code Fa3SchemaValidationTest}.
+     */
+    private final Fa3Parser extractor = Fa3Parser.withoutSchemaValidation();
+
     // --- Full fixtures -------------------------------------------------------------------------
 
     @Test
@@ -257,10 +263,12 @@ class Fa3ParserTest {
 
     @Test
     void ignoresElementsOutsideTheFa3Namespace() throws Exception {
+        // Extraction-level check: the schema rejects such documents (Fa3SchemaValidationTest), but
+        // the lookup itself must still match by namespace, not by local name alone.
         String xml = TestInvoiceXml.minimal().xml()
                 .replace("<P_2>", "<x:P_2 xmlns:x=\"urn:other\">IGNORED</x:P_2><P_2>");
 
-        Invoice invoice = parser.parse(utf8(xml));
+        Invoice invoice = extractor.parse(utf8(xml));
 
         assertEquals("T/1", invoice.number());
     }
@@ -297,12 +305,12 @@ class Fa3ParserTest {
         assertThrows(UnsupportedFormatException.class, () -> parser.parse(noSpace));
     }
 
-    // --- Invalid documents ---------------------------------------------------------------------
+    // --- Extraction defences (schema validation off; the schema rejects these first) -----------
 
     @Test
     void rejectsMissingGrossTotalWithItsPath() {
         InvalidInvoiceException e = assertThrows(InvalidInvoiceException.class,
-                () -> parser.parse(TestInvoiceXml.minimal().totals("").bytes()));
+                () -> extractor.parse(TestInvoiceXml.minimal().totals("").bytes()));
 
         assertEquals("Missing required element Faktura/Fa/P_15", e.getMessage());
     }
@@ -311,14 +319,14 @@ class Fa3ParserTest {
     void rejectsGrossTotalInTheWrongNamespaceAsMissing() {
         byte[] xml = TestInvoiceXml.minimal().totals("<P_15 xmlns=\"urn:other\">123</P_15>").bytes();
 
-        assertThrows(InvalidInvoiceException.class, () -> parser.parse(xml));
+        assertThrows(InvalidInvoiceException.class, () -> extractor.parse(xml));
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"1,50", "1 000.00", "1e3", "+5", ".5", "5.", "12.3.4", "NaN", "0x10"})
     void rejectsMalformedAmountsWithoutEchoingThem(String amount) {
         InvalidInvoiceException e = assertThrows(InvalidInvoiceException.class,
-                () -> parser.parse(TestInvoiceXml.minimal().totals("<P_15>" + amount + "</P_15>").bytes()));
+                () -> extractor.parse(TestInvoiceXml.minimal().totals("<P_15>" + amount + "</P_15>").bytes()));
 
         assertEquals("Malformed number in Faktura/Fa/P_15", e.getMessage());
     }
@@ -327,7 +335,7 @@ class Fa3ParserTest {
     @ValueSource(strings = {"2026-13-01", "2026-02-30", "26-10-01", "2026-10-01Z", "2026/10/01", "01.10.2026"})
     void rejectsMalformedDates(String date) {
         InvalidInvoiceException e = assertThrows(InvalidInvoiceException.class,
-                () -> parser.parse(TestInvoiceXml.minimal().issueDate(date).bytes()));
+                () -> extractor.parse(TestInvoiceXml.minimal().issueDate(date).bytes()));
 
         assertEquals("Malformed date in Faktura/Fa/P_1", e.getMessage());
     }
@@ -335,16 +343,16 @@ class Fa3ParserTest {
     @Test
     void rejectsUnknownCodes() {
         assertThrows(InvalidInvoiceException.class,
-                () -> parser.parse(TestInvoiceXml.minimal().type("PRO").bytes()));
+                () -> extractor.parse(TestInvoiceXml.minimal().type("PRO").bytes()));
         assertThrows(InvalidInvoiceException.class,
-                () -> parser.parse(TestInvoiceXml.minimal().currency("zł").bytes()));
-        assertThrows(InvalidInvoiceException.class, () -> parser.parse(TestInvoiceXml.minimal()
+                () -> extractor.parse(TestInvoiceXml.minimal().currency("zł").bytes()));
+        assertThrows(InvalidInvoiceException.class, () -> extractor.parse(TestInvoiceXml.minimal()
                 .items("<FaWiersz><NrWierszaFa>1</NrWierszaFa><P_12>23%</P_12></FaWiersz>").bytes()));
     }
 
     @Test
     void rejectsBuyerWithoutAnyIdentificationChoice() {
-        InvalidInvoiceException e = assertThrows(InvalidInvoiceException.class, () -> parser.parse(
+        InvalidInvoiceException e = assertThrows(InvalidInvoiceException.class, () -> extractor.parse(
                 TestInvoiceXml.minimal().buyerIdentification("<Nazwa>Bez identyfikatora</Nazwa>").bytes()));
 
         assertTrue(e.getMessage().contains("Faktura/Podmiot2/DaneIdentyfikacyjne"));
@@ -352,7 +360,7 @@ class Fa3ParserTest {
 
     @Test
     void rejectsItemWithoutLineNumber() {
-        InvalidInvoiceException e = assertThrows(InvalidInvoiceException.class, () -> parser.parse(
+        InvalidInvoiceException e = assertThrows(InvalidInvoiceException.class, () -> extractor.parse(
                 TestInvoiceXml.minimal().items("<FaWiersz><P_7>x</P_7></FaWiersz>").bytes()));
 
         assertEquals("Missing required element Faktura/Fa/FaWiersz[1]/NrWierszaFa", e.getMessage());

@@ -80,9 +80,13 @@ class Fa3ParserSecurityTest {
                         + "\" parse=\"text\"/></P_7></FaWiersz>")
                 .bytes();
 
-        Invoice invoice = parser.parse(xml);
-
+        // The XML layer leaves it inert (checked without the schema, which would reject it first)...
+        Invoice invoice = Fa3Parser.withoutSchemaValidation().parse(xml);
         assertNull(invoice.items().get(0).description(), "XInclude must stay an inert element");
+
+        // ...and the schema then rejects the stray element without revealing the file.
+        InvalidInvoiceException e = assertThrows(InvalidInvoiceException.class, () -> parser.parse(xml));
+        assertFalse(e.getMessage().contains(MARKER));
     }
 
     @Test
