@@ -8,6 +8,7 @@ import dev.michalraczkowski.fakturomost.core.fa3.Fa3Parser;
 import dev.michalraczkowski.fakturomost.core.fa3.InvalidInvoiceException;
 import dev.michalraczkowski.fakturomost.core.fa3.InvoiceParseException;
 import dev.michalraczkowski.fakturomost.core.fa3.UnsupportedFormatException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -34,10 +35,43 @@ public final class InvoiceImporter {
 
     private final Fa3Parser parser;
     private final DocumentStore store;
+    private final SourceFileReader fileReader;
 
     public InvoiceImporter(Fa3Parser parser, DocumentStore store) {
+        this(parser, store, ImportLimits.DEFAULT);
+    }
+
+    public InvoiceImporter(Fa3Parser parser, DocumentStore store, ImportLimits limits) {
         this.parser = Objects.requireNonNull(parser, "parser");
         this.store = Objects.requireNonNull(store, "store");
+        this.fileReader = new SourceFileReader(Objects.requireNonNull(limits, "limits"));
+    }
+
+    /**
+     * Imports files: an XML file is one document, a ZIP archive (detected by content, not by
+     * extension) one document per entry — e.g. a KSeF bulk download. Results come in order; an
+     * entry is named {@code <zip path>!/<entry name>}, and its KSeF number is read from the entry
+     * name. Problems with a file or archive as a whole are reported under the file's name.
+     *
+     * <p>Files are only read, never modified; nothing is extracted to disk.
+     */
+    public List<ImportResult> importPaths(List<Path> paths) {
+        List<ImportResult> results = new ArrayList<>();
+        SourceFileReader.Sink sink = new SourceFileReader.Sink() {
+            @Override
+            public void document(SourceDocument document) {
+                results.add(importDocument(document));
+            }
+
+            @Override
+            public void rejected(ImportResult result) {
+                results.add(result);
+            }
+        };
+        for (Path path : paths) {
+            fileReader.read(path, sink);
+        }
+        return results;
     }
 
     /** Imports the documents in order; duplicates within the list are detected too. */
