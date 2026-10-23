@@ -2,8 +2,13 @@ package dev.michalraczkowski.fakturomost.core.fa3;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import dev.michalraczkowski.fakturomost.core.application.ImportResult;
+import dev.michalraczkowski.fakturomost.core.application.InMemoryDocumentStore;
+import dev.michalraczkowski.fakturomost.core.application.InvoiceImporter;
+import dev.michalraczkowski.fakturomost.core.application.SourceDocument;
 import dev.michalraczkowski.fakturomost.core.domain.Invoice;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -59,6 +64,26 @@ class ReferenceSamplesTest {
         assertEquals(new BigDecimal("2051"), invoice.grossTotal());
         assertEquals(3, invoice.items().size());
         assertEquals(2, invoice.vatBreakdown().size());
+    }
+
+    @Test
+    void importsRealKsefDownloadsWithTheirKsefNumbers() throws IOException {
+        List<Path> downloads = xmlFilesUnder(REFERENCE_DIR.resolve("ksef-test-downloads"));
+        assumeTrue(!downloads.isEmpty(), "No KSeF test downloads in " + REFERENCE_DIR.toAbsolutePath());
+        InMemoryDocumentStore store = new InMemoryDocumentStore();
+        InvoiceImporter importer = new InvoiceImporter(parser, store);
+
+        for (Path download : downloads) {
+            String fileName = download.getFileName().toString();
+            ImportResult result = importer.importDocument(SourceDocument.of(fileName, Files.readAllBytes(download)));
+
+            if (result instanceof ImportResult.Duplicate) {
+                continue; // the same invoice downloaded twice (single file and inside a ZIP)
+            }
+            ImportResult.Imported imported = assertInstanceOf(ImportResult.Imported.class, result, fileName);
+            assertEquals(fileName.substring(0, fileName.length() - ".xml".length()),
+                    String.valueOf(imported.ksefNumber()), "KSeF number from " + fileName);
+        }
     }
 
     private static List<Path> xmlFilesUnder(Path... directories) throws IOException {
