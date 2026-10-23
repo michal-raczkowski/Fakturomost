@@ -63,11 +63,16 @@ public sealed interface ImportResult {
         }
     }
 
-    /** Not well-formed, schema-invalid, oversized or otherwise unusable. Not stored. */
+    /**
+     * Not well-formed, schema-invalid, oversized, not XML (e.g. a PDF), a nested archive, or an
+     * unusable ZIP. Not stored.
+     *
+     * @param id of the document, or {@code null} if it was rejected before being read completely
+     *           (over a size limit) or the problem concerns a whole archive
+     */
     record Invalid(String sourceName, DocumentId id, String reason) implements ImportResult {
         public Invalid {
             Objects.requireNonNull(sourceName, "sourceName");
-            Objects.requireNonNull(id, "id");
             Objects.requireNonNull(reason, "reason");
         }
     }

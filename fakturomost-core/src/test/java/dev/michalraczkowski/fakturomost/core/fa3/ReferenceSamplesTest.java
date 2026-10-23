@@ -3,6 +3,8 @@ package dev.michalraczkowski.fakturomost.core.fa3;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import dev.michalraczkowski.fakturomost.core.application.ImportResult;
@@ -86,7 +88,39 @@ class ReferenceSamplesTest {
         }
     }
 
+    @Test
+    void importsRealKsefZipPackages() throws IOException {
+        List<Path> zips = filesUnder(".zip", REFERENCE_DIR.resolve("ksef-test-downloads"));
+        assumeTrue(!zips.isEmpty(), "No KSeF ZIP packages in " + REFERENCE_DIR.toAbsolutePath());
+        InvoiceImporter importer = new InvoiceImporter(parser, new InMemoryDocumentStore());
+
+        List<ImportResult> results = importer.importPaths(zips);
+
+        int imported = 0;
+        for (ImportResult result : results) {
+            switch (result) {
+                case ImportResult.Imported r -> {
+                    imported++;
+                    String entry = r.sourceName().substring(r.sourceName().lastIndexOf('/') + 1);
+                    assertEquals(entry.substring(0, entry.length() - ".xml".length()), String.valueOf(r.ksefNumber()),
+                            "KSeF number from " + r.sourceName());
+                }
+                case ImportResult.Duplicate r -> { /* same invoice in several packages */ }
+                case ImportResult.Invalid r -> assertTrue(r.reason().startsWith("PDF file"),
+                        r.sourceName() + ": " + r.reason()); // the PDF package
+                case ImportResult.Unsupported r -> fail(r.sourceName() + ": " + r.reason());
+                case ImportResult.Failed r -> fail(r.sourceName() + ": " + r.reason());
+            }
+        }
+        assertTrue(imported > 0 || results.stream().allMatch(ImportResult.Invalid.class::isInstance),
+                "XML packages should import invoices: " + results);
+    }
+
     private static List<Path> xmlFilesUnder(Path... directories) throws IOException {
+        return filesUnder(".xml", directories);
+    }
+
+    private static List<Path> filesUnder(String extension, Path... directories) throws IOException {
         List<Path> result = new ArrayList<>();
         for (Path directory : directories) {
             if (!Files.isDirectory(directory)) {
@@ -94,7 +128,7 @@ class ReferenceSamplesTest {
             }
             try (Stream<Path> files = Files.walk(directory)) {
                 files.filter(Files::isRegularFile)
-                        .filter(path -> path.getFileName().toString().toLowerCase().endsWith(".xml"))
+                        .filter(path -> path.getFileName().toString().toLowerCase().endsWith(extension))
                         .sorted()
                         .forEach(result::add);
             }
