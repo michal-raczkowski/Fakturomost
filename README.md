@@ -13,35 +13,7 @@ Many small businesses receive invoices through KSeF but use older software that 
 
 It is a read-only bridge. It never modifies original invoice documents and does not issue or submit invoices.
 
-## Status
-
-Early development. What works today is the project foundation: a JavaFX window running on a Spring context, with automated checks on Linux and Windows.
-
-| Milestone | Scope | Status |
-|---|---|---|
-| 1 | Project foundation | ✅ Done |
-| 2 | Invoice processing: FA(3) XML and ZIP import, CSV/JSON export | Planned |
-| 3 | Command-line tool (`inspect`, `convert`) | Planned |
-| 4 | Desktop interface: invoice list, filters, details, export | Planned |
-| 5 | Encrypted local storage (SQLCipher, Windows DPAPI) | Planned |
-| 6 | Windows installer with a synthetic demo dataset | Planned |
-| 7 | Backup/recovery, threat model, hardening | Planned |
-| 8 | KSeF API synchronization, test environments only (optional) | Planned |
-
-In the first releases, invoices are imported from files downloaded from KSeF, not fetched through the KSeF API.
-
-## Architecture
-
-```mermaid
-flowchart LR
-    desktop["fakturomost-desktop<br/>JavaFX + Spring Boot (no HTTP)"] --> core["fakturomost-core<br/>domain, parsing, export<br/>(no frameworks)"]
-    cli["fakturomost-cli<br/>(planned)"] -.-> core
-```
-
-- **`fakturomost-core`** is a plain Java library with no framework, UI, database or OS-specific dependencies. The build enforces this.
-- **`fakturomost-desktop`** is the JavaFX application. Spring Boot is used for dependency injection and configuration only; it runs **without a web server**.
-
-### No network listeners
+## No network listeners
 
 The desktop app has no reason to accept network connections, so it doesn't. Three layers keep it that way:
 
