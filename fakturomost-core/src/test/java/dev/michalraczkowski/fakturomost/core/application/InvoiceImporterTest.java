@@ -136,6 +136,16 @@ class InvoiceImporterTest {
             public boolean addIfAbsent(StoredDocument document) {
                 throw new IllegalStateException("disk full");
             }
+
+            @Override
+            public java.util.Optional<StoredDocument> find(DocumentId id) {
+                return java.util.Optional.empty();
+            }
+
+            @Override
+            public List<InvoiceEntry> findInvoices(InvoiceQuery query) {
+                return List.of();
+            }
         };
 
         ImportResult result = new InvoiceImporter(new Fa3Parser(), broken).importDocument(SourceDocument.of(KSEF_NAME, VAT));
@@ -157,6 +167,16 @@ class InvoiceImporterTest {
             @Override
             public boolean addIfAbsent(StoredDocument document) {
                 return false;
+            }
+
+            @Override
+            public java.util.Optional<StoredDocument> find(DocumentId id) {
+                return java.util.Optional.empty();
+            }
+
+            @Override
+            public List<InvoiceEntry> findInvoices(InvoiceQuery query) {
+                return List.of();
             }
         };
 
