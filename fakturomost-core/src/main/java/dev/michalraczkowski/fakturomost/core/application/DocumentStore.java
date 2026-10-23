@@ -1,12 +1,12 @@
 package dev.michalraczkowski.fakturomost.core.application;
 
 import dev.michalraczkowski.fakturomost.core.domain.DocumentId;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Port for keeping imported documents. Implemented in memory in core (CLI, tests) and by the
  * encrypted SQLite store in the desktop module.
- *
- * <p>Deliberately small; query methods arrive with {@code InvoiceCatalog}.
  */
 public interface DocumentStore {
 
@@ -20,4 +20,13 @@ public interface DocumentStore {
      * @return {@code true} if stored, {@code false} if the ID was already present (nothing changed)
      */
     boolean addIfAbsent(StoredDocument document);
+
+    /** The stored document with this ID, including its original bytes. */
+    Optional<StoredDocument> find(DocumentId id);
+
+    /**
+     * Supported invoices that may match the query, in any order. May return more than match (the
+     * caller applies {@link InvoiceQuery#matches}), never fewer.
+     */
+    List<InvoiceEntry> findInvoices(InvoiceQuery query);
 }

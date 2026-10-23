@@ -26,8 +26,18 @@ public final class InMemoryDocumentStore implements DocumentStore {
         return documents.putIfAbsent(document.id(), document) == null;
     }
 
+    @Override
     public synchronized Optional<StoredDocument> find(DocumentId id) {
         return Optional.ofNullable(documents.get(id));
+    }
+
+    @Override
+    public synchronized List<InvoiceEntry> findInvoices(InvoiceQuery query) {
+        return documents.values().stream()
+                .map(InvoiceEntry::of)
+                .filter(Objects::nonNull)
+                .filter(query::matches)
+                .toList();
     }
 
     /** Snapshot of all documents in import order. */
