@@ -10,3 +10,5 @@ mvnw.cmd    text eol=crlf
 
 *.jar       binary
 *.xsd -text
+
+demo-data/** -text
