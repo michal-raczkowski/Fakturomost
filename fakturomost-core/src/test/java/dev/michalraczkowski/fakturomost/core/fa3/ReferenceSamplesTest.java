@@ -1,0 +1,138 @@
+package dev.michalraczkowski.fakturomost.core.fa3;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import dev.michalraczkowski.fakturomost.core.application.ImportResult;
+import dev.michalraczkowski.fakturomost.core.application.InMemoryDocumentStore;
+import dev.michalraczkowski.fakturomost.core.application.InvoiceImporter;
+import dev.michalraczkowski.fakturomost.core.application.SourceDocument;
+import dev.michalraczkowski.fakturomost.core.domain.Invoice;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
+
+/**
+ * Parses the official MF samples and real KSeF test downloads from the git-ignored
+ * {@code reference/} folder. Skipped when the folder is absent (e.g. in CI), because those files
+ * are not committed. Override the location with {@code -Dfakturomost.referenceDir=...}.
+ */
+class ReferenceSamplesTest {
+
+    private static final Path REFERENCE_DIR =
+            Paths.get(System.getProperty("fakturomost.referenceDir", "../reference"));
+
+    private final Fa3Parser parser = new Fa3Parser();
+
+    @Test
+    void parsesEveryReferenceInvoice() throws IOException {
+        List<Path> samples = xmlFilesUnder(REFERENCE_DIR.resolve("mf-samples"), REFERENCE_DIR.resolve("ksef-test-downloads"));
+        assumeTrue(!samples.isEmpty(), "No reference samples in " + REFERENCE_DIR.toAbsolutePath());
+
+        List<String> failures = new ArrayList<>();
+        for (Path sample : samples) {
+            try {
+                Invoice invoice = parser.parse(Files.readAllBytes(sample));
+                assertFalse(invoice.seller().taxId().display().isBlank());
+            } catch (InvoiceParseException e) {
+                failures.add(sample.getFileName() + ": " + e.getMessage());
+            }
+        }
+        assertEquals(List.of(), failures);
+    }
+
+    @Test
+    void readsFirstMfSampleAsDocumented() throws Exception {
+        // The official ZIP names the file "FA_3_Przykład_1.xml" (with "ł"); copies may use "l", and
+        // the "ł" can decode differently depending on the OS file-name encoding. Match around it.
+        List<Path> matches = xmlFilesUnder(REFERENCE_DIR.resolve("mf-samples")).stream()
+                .filter(path -> path.getFileName().toString().matches("FA_3_Przyk.*ad_1\\.xml"))
+                .toList();
+        assumeTrue(matches.size() == 1, "MF sample 1 not present in " + REFERENCE_DIR.toAbsolutePath());
+
+        Invoice invoice = parser.parse(Files.readAllBytes(matches.get(0)));
+
+        assertEquals("FV2026/02/150", invoice.number());
+        assertEquals(new BigDecimal("2051"), invoice.grossTotal());
+        assertEquals(3, invoice.items().size());
+        assertEquals(2, invoice.vatBreakdown().size());
+    }
+
+    @Test
+    void importsRealKsefDownloadsWithTheirKsefNumbers() throws IOException {
+        List<Path> downloads = xmlFilesUnder(REFERENCE_DIR.resolve("ksef-test-downloads"));
+        assumeTrue(!downloads.isEmpty(), "No KSeF test downloads in " + REFERENCE_DIR.toAbsolutePath());
+        InMemoryDocumentStore store = new InMemoryDocumentStore();
+        InvoiceImporter importer = new InvoiceImporter(parser, store);
+
+        for (Path download : downloads) {
+            String fileName = download.getFileName().toString();
+            ImportResult result = importer.importDocument(SourceDocument.of(fileName, Files.readAllBytes(download)));
+
+            if (result instanceof ImportResult.Duplicate) {
+                continue; // the same invoice downloaded twice (single file and inside a ZIP)
+            }
+            ImportResult.Imported imported = assertInstanceOf(ImportResult.Imported.class, result, fileName);
+            assertEquals(fileName.substring(0, fileName.length() - ".xml".length()),
+                    String.valueOf(imported.ksefNumber()), "KSeF number from " + fileName);
+        }
+    }
+
+    @Test
+    void importsRealKsefZipPackages() throws IOException {
+        List<Path> zips = filesUnder(".zip", REFERENCE_DIR.resolve("ksef-test-downloads"));
+        assumeTrue(!zips.isEmpty(), "No KSeF ZIP packages in " + REFERENCE_DIR.toAbsolutePath());
+        InvoiceImporter importer = new InvoiceImporter(parser, new InMemoryDocumentStore());
+
+        List<ImportResult> results = importer.importPaths(zips);
+
+        int imported = 0;
+        for (ImportResult result : results) {
+            switch (result) {
+                case ImportResult.Imported r -> {
+                    imported++;
+                    String entry = r.sourceName().substring(r.sourceName().lastIndexOf('/') + 1);
+                    assertEquals(entry.substring(0, entry.length() - ".xml".length()), String.valueOf(r.ksefNumber()),
+                            "KSeF number from " + r.sourceName());
+                }
+                case ImportResult.Duplicate r -> { /* same invoice in several packages */ }
+                case ImportResult.Invalid r -> assertTrue(r.reason().startsWith("PDF file"),
+                        r.sourceName() + ": " + r.reason()); // the PDF package
+                case ImportResult.Unsupported r -> fail(r.sourceName() + ": " + r.reason());
+                case ImportResult.Failed r -> fail(r.sourceName() + ": " + r.reason());
+            }
+        }
+        assertTrue(imported > 0 || results.stream().allMatch(ImportResult.Invalid.class::isInstance),
+                "XML packages should import invoices: " + results);
+    }
+
+    private static List<Path> xmlFilesUnder(Path... directories) throws IOException {
+        return filesUnder(".xml", directories);
+    }
+
+    private static List<Path> filesUnder(String extension, Path... directories) throws IOException {
+        List<Path> result = new ArrayList<>();
+        for (Path directory : directories) {
+            if (!Files.isDirectory(directory)) {
+                continue;
+            }
+            try (Stream<Path> files = Files.walk(directory)) {
+                files.filter(Files::isRegularFile)
+                        .filter(path -> path.getFileName().toString().toLowerCase().endsWith(extension))
+                        .sorted()
+                        .forEach(result::add);
+            }
+        }
+        return result;
+    }
+}
