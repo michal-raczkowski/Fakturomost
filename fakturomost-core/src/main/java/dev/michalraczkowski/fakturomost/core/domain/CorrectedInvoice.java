@@ -8,8 +8,10 @@ import java.util.Objects;
  *
  * @param issueDate  {@code DataWystFaKorygowanej}
  * @param number     {@code NrFaKorygowanej}
- * @param ksefNumber {@code NrKSeFFaKorygowanej}, or {@code null} when the corrected invoice was
- *                   issued outside KSeF
+ * @param ksefNumber {@code NrKSeFFaKorygowanej} as written, or {@code null} when the corrected
+ *                   invoice was issued outside KSeF. Plain text on purpose, not {@link KsefNumber}:
+ *                   the schema checks only its pattern, and even the official MF samples contain
+ *                   numbers whose checksum does not match
  */
 public record CorrectedInvoice(LocalDate issueDate, String number, String ksefNumber) {
 
