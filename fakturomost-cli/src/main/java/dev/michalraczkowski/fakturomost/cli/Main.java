@@ -55,6 +55,7 @@ public final class Main {
     static CommandLine newCommandLine(PrintWriter out, PrintWriter err, Supplier<CoreServices> services) {
         CommandLine commandLine = new CommandLine(new FakturomostCli());
         commandLine.addSubcommand(new InspectCommand(services));
+        commandLine.addSubcommand(new ConvertCommand(services));
         commandLine.setOut(out);
         commandLine.setErr(err);
         // Plain text only, whatever the environment: picocli would otherwise add ANSI colour codes when it

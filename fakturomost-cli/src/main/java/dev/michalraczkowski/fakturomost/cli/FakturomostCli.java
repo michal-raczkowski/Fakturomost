@@ -7,8 +7,8 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Spec;
 
 /**
- * Top-level command. Subcommands are registered in {@link Main#newCommandLine}: {@code inspect} now,
- * {@code convert} in a later M3 task.
+ * Top-level command. Subcommands ({@code inspect}, {@code convert}) are registered in
+ * {@link Main#newCommandLine}.
  *
  * <p>Exit codes for usage errors and unexpected exceptions are set by the handlers in {@link Main}, not by
  * {@code exitCodeOnInvalidInput}/{@code exitCodeOnExecutionException}: those annotation attributes are

@@ -38,17 +38,21 @@ final class InputFiles {
     private static final List<String> FOLDER_EXTENSIONS = List.of(".xml", ".zip", ".pdf");
 
     /**
+     * @param filesRead    real paths of the files offered to core (explicit and from folders, existing
+     *                     ones only), so a command can refuse to write over its own inputs
      * @param skippedFiles files inside folders that were not read because of their extension
      * @param skippedLinks symbolic links (and parent loops) inside folders that were not followed
      */
-    record Outcome(List<ImportResult> results, int skippedFiles, int skippedLinks) {
+    record Outcome(List<ImportResult> results, Set<Path> filesRead, int skippedFiles, int skippedLinks) {
         Outcome {
             results = List.copyOf(results);
+            filesRead = Set.copyOf(filesRead);
         }
     }
 
     private final InvoiceImporter importer;
     private final List<ImportResult> results = new ArrayList<>();
+    private final Set<Path> filesRead = new HashSet<>();
     private int skippedFiles;
     private int skippedLinks;
 
@@ -66,11 +70,16 @@ final class InputFiles {
                 run.importFile(input);
             }
         }
-        return new Outcome(run.results, run.skippedFiles, run.skippedLinks);
+        return new Outcome(run.results, run.filesRead, run.skippedFiles, run.skippedLinks);
     }
 
     private void importFile(Path file) {
         results.addAll(importer.importPaths(List.of(file)));
+        try {
+            filesRead.add(file.toRealPath());
+        } catch (IOException e) {
+            // Missing or unreadable: core has reported it; nothing that could be overwritten.
+        }
     }
 
     /** @param ancestors real paths of the folders above this one, to stop parent loops */

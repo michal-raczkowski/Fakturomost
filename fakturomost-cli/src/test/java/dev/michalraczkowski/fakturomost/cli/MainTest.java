@@ -146,7 +146,8 @@ class MainTest {
         String previous = System.getProperty("picocli.ansi");
         System.setProperty("picocli.ansi", "true");
         try {
-            for (String[] args : new String[][] {{"--help"}, {}, {"--versoin"}, {"inspect", "--help"}, {"inspect"}}) {
+            for (String[] args : new String[][] {{"--help"}, {}, {"--versoin"}, {"inspect", "--help"}, {"inspect"},
+                    {"convert", "--help"}, {"convert"}}) {
                 Run run = run(args);
                 String all = run.out() + run.err();
 
