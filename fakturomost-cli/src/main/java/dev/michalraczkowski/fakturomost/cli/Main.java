@@ -3,6 +3,7 @@ package dev.michalraczkowski.fakturomost.cli;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.function.Supplier;
 
 import picocli.CommandLine;
 import picocli.CommandLine.IExecutionExceptionHandler;
@@ -12,8 +13,9 @@ import picocli.CommandLine.UnmatchedArgumentException;
 /**
  * Entry point and the CLI's only wiring code: plain Java, no Spring (ADR 0006).
  *
- * <p>Output rules (addendum §4): help and version go to stdout because the user asked for them;
- * every diagnostic goes to stderr; invoice data is only ever written to the {@code --out} file.
+ * <p>Output rules (addendum §4): what the user asked for goes to stdout (help, version, the
+ * {@code inspect} report, which holds no invoice contents); every diagnostic goes to stderr; invoice
+ * data is only ever written to the {@code --out} file.
  */
 public final class Main {
 
@@ -27,8 +29,13 @@ public final class Main {
 
     /** Runs the CLI without exiting the JVM; used by {@link #main} and by tests. */
     static int run(String[] args, PrintWriter out, PrintWriter err) {
+        return run(args, out, err, CoreServices::create);
+    }
+
+    /** As {@link #run(String[], PrintWriter, PrintWriter)}, with core services from {@code services} (tests). */
+    static int run(String[] args, PrintWriter out, PrintWriter err, Supplier<CoreServices> services) {
         try {
-            return newCommandLine(out, err).execute(args);
+            return newCommandLine(out, err, services).execute(args);
         } finally {
             out.flush();
             err.flush();
@@ -36,7 +43,17 @@ public final class Main {
     }
 
     static CommandLine newCommandLine(PrintWriter out, PrintWriter err) {
+        return newCommandLine(out, err, CoreServices::create);
+    }
+
+    /**
+     * Builds the command tree. Subcommands are added first: {@code setOut}/{@code setErr} reach only the
+     * subcommands that exist when they are called. Each command asks {@code services} for fresh core
+     * objects per run.
+     */
+    static CommandLine newCommandLine(PrintWriter out, PrintWriter err, Supplier<CoreServices> services) {
         CommandLine commandLine = new CommandLine(new FakturomostCli());
+        commandLine.addSubcommand(new InspectCommand(services));
         commandLine.setOut(out);
         commandLine.setErr(err);
         // The handlers write to the given err directly, so subcommands added later cannot fall back to System.err.
