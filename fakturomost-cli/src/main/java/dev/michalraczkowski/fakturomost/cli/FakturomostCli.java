@@ -7,7 +7,8 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Spec;
 
 /**
- * Top-level command. Subcommands ({@code inspect}, {@code convert}) are added in later M3 tasks.
+ * Top-level command. Subcommands are registered in {@link Main#newCommandLine}: {@code inspect} now,
+ * {@code convert} in a later M3 task.
  *
  * <p>Exit codes for usage errors and unexpected exceptions are set by the handlers in {@link Main}, not by
  * {@code exitCodeOnInvalidInput}/{@code exitCodeOnExecutionException}: those annotation attributes are
@@ -18,7 +19,6 @@ import picocli.CommandLine.Spec;
         mixinStandardHelpOptions = true,
         versionProvider = CliVersion.class,
         sortOptions = false,
-        usageHelpAutoWidth = true,
         description = {
                 "Inspect and convert KSeF FA(3) invoice files (XML or ZIP) offline.",
                 "Independent, experimental open-source tool; not affiliated with or endorsed by the Polish Ministry of Finance."
