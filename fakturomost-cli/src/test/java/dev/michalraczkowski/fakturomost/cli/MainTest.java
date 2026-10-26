@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.junit.jupiter.api.Test;
@@ -134,5 +136,43 @@ class MainTest {
         assertFalse(err.toString().contains("FV/2026"), err.toString());
         assertFalse(err.toString().contains("9999999999"), err.toString());
         assertFalse(err.toString().contains("\tat "), "no stack trace: " + err);
+    }
+
+    // --- plain text output (regression: Windows CI runner with TERM set got ANSI codes) ----------
+
+    @Test
+    void outputNeverContainsAnsiEscapesEvenWhenPicocliIsToldToUseThem() {
+        // picocli.ansi=true is what picocli's terminal guess amounts to on a Windows runner with TERM set.
+        String previous = System.getProperty("picocli.ansi");
+        System.setProperty("picocli.ansi", "true");
+        try {
+            for (String[] args : new String[][] {{"--help"}, {}, {"--versoin"}, {"inspect", "--help"}, {"inspect"}}) {
+                Run run = run(args);
+                String all = run.out() + run.err();
+
+                assertFalse(all.isEmpty(), String.join(" ", args));
+                assertFalse(all.contains("\u001b"), "ANSI escape in output of '" + String.join(" ", args) + "': "
+                        + all.replace("\u001b", "<ESC>"));
+            }
+        } finally {
+            if (previous == null) {
+                System.clearProperty("picocli.ansi");
+            } else {
+                System.setProperty("picocli.ansi", previous);
+            }
+        }
+    }
+
+    @Test
+    void helpWidthIsFixedSoNoProcessIsStartedToMeasureTheConsole() {
+        // usageHelpAutoWidth makes picocli run stty (or PowerShell on Windows) on every --help.
+        CommandLine commandLine = Main.newCommandLine(new PrintWriter(new StringWriter()), new PrintWriter(new StringWriter()));
+        List<CommandLine> commands = new ArrayList<>(List.of(commandLine));
+        commands.addAll(commandLine.getSubcommands().values());
+
+        for (CommandLine command : commands) {
+            assertFalse(command.getCommandSpec().usageMessage().autoWidth(), command.getCommandName());
+        }
+        assertTrue(commands.size() > 1, "subcommands checked too");
     }
 }

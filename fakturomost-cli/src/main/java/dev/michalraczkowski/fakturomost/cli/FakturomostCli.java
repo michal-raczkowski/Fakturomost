@@ -19,7 +19,6 @@ import picocli.CommandLine.Spec;
         mixinStandardHelpOptions = true,
         versionProvider = CliVersion.class,
         sortOptions = false,
-        usageHelpAutoWidth = true,
         description = {
                 "Inspect and convert KSeF FA(3) invoice files (XML or ZIP) offline.",
                 "Independent, experimental open-source tool; not affiliated with or endorsed by the Polish Ministry of Finance."

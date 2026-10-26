@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.function.Supplier;
 
 import picocli.CommandLine;
+import picocli.CommandLine.Help;
 import picocli.CommandLine.IExecutionExceptionHandler;
 import picocli.CommandLine.IParameterExceptionHandler;
 import picocli.CommandLine.UnmatchedArgumentException;
@@ -56,6 +57,11 @@ public final class Main {
         commandLine.addSubcommand(new InspectCommand(services));
         commandLine.setOut(out);
         commandLine.setErr(err);
+        // Plain text only, whatever the environment: picocli would otherwise add ANSI colour codes when it
+        // guesses a terminal (e.g. TERM set on a Windows CI runner), breaking scripts, logs and tests.
+        // Help width stays at the default 80 columns (no usageHelpAutoWidth), so --help never spawns
+        // stty or PowerShell to measure the console.
+        commandLine.setColorScheme(Help.defaultColorScheme(Help.Ansi.OFF));
         // The handlers write to the given err directly, so subcommands added later cannot fall back to System.err.
         commandLine.setParameterExceptionHandler(usageErrorHandler(err));
         commandLine.setExecutionExceptionHandler(unexpectedErrorHandler(err));

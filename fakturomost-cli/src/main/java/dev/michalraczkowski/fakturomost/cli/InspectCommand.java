@@ -27,7 +27,6 @@ import picocli.CommandLine.Spec;
         name = "inspect",
         mixinStandardHelpOptions = true,
         versionProvider = CliVersion.class,
-        usageHelpAutoWidth = true,
         description = {
                 "Check FA(3) invoice files without writing anything.",
                 "Prints one line per document (Imported, Duplicate, Unsupported, Invalid or Failed) and a summary.",
