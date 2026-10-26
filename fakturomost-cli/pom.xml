@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dev.michalraczkowski</groupId>
+        <artifactId>fakturomost-parent</artifactId>
+        <!-- Must match the parent's <version>. -->
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>fakturomost-cli</artifactId>
+    <name>Fakturomost CLI</name>
+    <description>Stateless command-line converter over fakturomost-core (no Spring, plain Java wiring).</description>
+
+    <properties>
+        <!-- Entry point written into the jar manifest. -->
+        <cli.mainClass>dev.michalraczkowski.fakturomost.cli.Main</cli.mainClass>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>dev.michalraczkowski</groupId>
+            <artifactId>fakturomost-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <!-- Version managed in the parent (property picocli.version). -->
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- Stable jar name (no version) so the run command and CI smoke test never change. -->
+        <finalName>fakturomost-cli</finalName>
+
+        <resources>
+            <!-- Only the version file is filtered; everything else is copied verbatim. -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/fakturomost-cli.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/fakturomost-cli.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${cli.mainClass}</mainClass>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-runtime-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>runtime</includeScope>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <!-- Separate id so the parent's enforce-build-rules is not merged/overridden. -->
+                    <execution>
+                        <id>enforce-headless-cli</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <message>fakturomost-cli must stay headless and framework-free: no JavaFX, Spring, SQLite, JNA, and no dependency on the desktop module (addendum §3.4, §4).</message>
+                                    <excludes>
+                                        <exclude>org.openjfx</exclude>
+                                        <exclude>org.springframework*</exclude>
+                                        <exclude>org.xerial:sqlite-jdbc</exclude>
+                                        <exclude>io.github.willena:sqlite-jdbc</exclude>
+                                        <exclude>org.postgresql</exclude>
+                                        <exclude>net.java.dev.jna</exclude>
+                                        <exclude>dev.michalraczkowski:fakturomost-desktop</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
