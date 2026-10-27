@@ -1,0 +1,590 @@
+/*
+ * Fakturomost desktop theme, on top of JavaFX's Modena.
+ *
+ * Goal: identical on Windows, macOS and Linux (bundled font, every size and colour pinned here),
+ * calm and flat. One accent — river teal — used for the primary action, focus and selection.
+ * No government/MF styling (master prompt §14).
+ *
+ * Tokens (looked-up colours, usable anywhere below):
+ *   -fk-ground  #F4F6F7  window background
+ *   -fk-surface #FFFFFF  tables, details, dialogs
+ *   -fk-ink     #1D2733  text
+ *   -fk-muted   #5E6875  secondary text
+ *   -fk-line    #DCE1E6  hairlines and borders
+ *   -fk-accent  #0E6B76  primary action, focus, selected radio
+ *   -fk-tint    #DDEFF1  selection background
+ */
+
+.root {
+    -fk-ground: #F4F6F7;
+    -fk-surface: #FFFFFF;
+    -fk-ink: #1D2733;
+    -fk-muted: #5E6875;
+    -fk-line: #DCE1E6;
+    -fk-line-soft: #EDF0F3;
+    -fk-hover: #F3F6F7;
+    -fk-accent: #0E6B76;
+    -fk-accent-hover: #0B5862;
+    -fk-accent-pressed: #08464E;
+    -fk-tint: #DDEFF1;
+    -fk-warning-ink: #6E4A00;
+    -fk-warning-bg: #FFF3D6;
+    -fk-warning-line: #F0DCA6;
+    -fk-problem-ink: #9F2A1F;
+    -fk-problem-bg: #FBE7E5;
+
+    /* Modena's own variables, so everything we don't restyle still matches. */
+    -fx-base: #F4F6F7;
+    -fx-background: -fk-ground;
+    -fx-control-inner-background: -fk-surface;
+    -fx-control-inner-background-alt: -fk-surface;
+    -fx-accent: -fk-accent;
+    -fx-default-button: -fk-accent;
+    -fx-focus-color: -fk-accent;
+    -fx-faint-focus-color: #0E6B7622;
+    -fx-selection-bar: -fk-tint;
+    -fx-selection-bar-non-focused: #E8F1F2;
+    -fx-selection-bar-text: -fk-ink;
+    -fx-text-base-color: -fk-ink;
+    -fx-text-background-color: -fk-ink;
+    -fx-dark-text-color: -fk-ink;
+    -fx-mid-text-color: -fk-ink;
+    -fx-box-border: -fk-line;
+    -fx-text-box-border: -fk-line;
+
+    -fx-font-family: "IBM Plex Sans";
+    -fx-font-size: 13px;
+    -fx-font-smoothing-type: gray; /* LCD subpixel text differs per OS; grey looks the same everywhere */
+    -fx-background-color: -fk-ground;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Text                                                                                           */
+/* ---------------------------------------------------------------------------------------------- */
+
+.label {
+    -fx-text-fill: -fk-ink;
+}
+
+.muted {
+    -fx-text-fill: -fk-muted;
+}
+
+.wordmark {
+    -fx-font-family: "IBM Plex Sans SmBld";
+    -fx-font-size: 17px;
+    -fx-text-fill: -fk-accent;
+}
+
+.version {
+    -fx-text-fill: -fk-muted;
+    -fx-font-size: 12px;
+}
+
+.details-title {
+    -fx-font-family: "IBM Plex Sans SmBld";
+    -fx-font-size: 17px;
+}
+
+.details-section {
+    -fx-font-family: "IBM Plex Sans SmBld";
+    -fx-font-size: 13px;
+    -fx-padding: 10 0 0 0;
+}
+
+.details-label {
+    -fx-text-fill: -fk-muted;
+}
+
+.details-message {
+    -fx-text-fill: -fk-muted;
+}
+
+.warning {
+    -fx-text-fill: -fk-warning-ink;
+    -fx-font-family: "IBM Plex Sans SmBld";
+}
+
+.hyperlink {
+    -fx-text-fill: -fk-accent;
+    -fx-border-color: transparent;
+    -fx-underline: false;
+    -fx-padding: 2 4;
+}
+
+.hyperlink:hover {
+    -fx-underline: true;
+}
+
+.hyperlink:visited {
+    -fx-text-fill: -fk-accent;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Window chrome: header, banner, status bar                                                      */
+/* ---------------------------------------------------------------------------------------------- */
+
+.app-header {
+    -fx-background-color: -fk-surface;
+    -fx-border-color: transparent transparent -fk-line transparent;
+    -fx-padding: 10 16 10 16;
+    -fx-spacing: 8;
+    -fx-alignment: center-left;
+}
+
+.banner {
+    -fx-background-color: -fk-warning-bg;
+    -fx-border-color: transparent transparent -fk-warning-line transparent;
+    -fx-text-fill: -fk-warning-ink;
+    -fx-padding: 7 16 7 16;
+}
+
+.status-bar {
+    -fx-background-color: -fk-surface;
+    -fx-border-color: -fk-line transparent transparent transparent;
+    -fx-padding: 6 16 6 16;
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+}
+
+.status-bar .label {
+    -fx-text-fill: -fk-muted;
+    -fx-font-size: 12px;
+}
+
+.progress-indicator {
+    -fx-progress-color: -fk-accent;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Buttons                                                                                        */
+/* ---------------------------------------------------------------------------------------------- */
+
+.button {
+    -fx-background-color: -fk-line, -fk-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-padding: 6 14 6 14;
+    -fx-text-fill: -fk-ink;
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-background-color: #C7CED6, -fk-hover;
+}
+
+.button:pressed {
+    -fx-background-color: #B9C1CA, #E9EDF0;
+}
+
+.button:focused {
+    -fx-background-color: -fk-accent, -fk-surface;
+    -fx-background-insets: 0, 1.5;
+}
+
+.button.primary,
+.button:default {
+    -fx-background-color: -fk-accent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+}
+
+.button.primary:hover,
+.button:default:hover {
+    -fx-background-color: -fk-accent-hover;
+}
+
+.button.primary:pressed,
+.button:default:pressed {
+    -fx-background-color: -fk-accent-pressed;
+}
+
+.button.primary:focused,
+.button:default:focused {
+    -fx-background-color: -fk-accent-pressed, -fk-accent;
+    -fx-background-insets: 0, 2;
+}
+
+.button:disabled {
+    -fx-opacity: 0.45;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Tables: invoice list, line items, VAT buckets, import results                                  */
+/* ---------------------------------------------------------------------------------------------- */
+
+.table-view {
+    -fx-background-color: -fk-surface;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.table-view:focused {
+    -fx-background-color: -fk-surface;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #F8FAFB;
+    -fx-border-color: transparent transparent -fk-line transparent;
+}
+
+.table-view .column-header,
+.table-view .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-size: 32px;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -fk-muted;
+    -fx-font-family: "IBM Plex Sans SmBld";
+    -fx-font-size: 12px;
+    -fx-alignment: center-left;
+    -fx-padding: 0 8 0 8;
+}
+
+.table-view .column-header.numeric .label {
+    -fx-alignment: center-right;
+}
+
+.table-view .column-header .arrow {
+    -fx-background-color: -fk-muted;
+}
+
+.table-view .column-resize-line {
+    -fx-background-color: -fk-accent;
+}
+
+.table-row-cell {
+    -fx-background-color: -fk-line-soft, -fk-surface;
+    -fx-background-insets: 0, 0 0 1 0;
+    -fx-cell-size: 30px;
+    -fx-text-fill: -fk-ink;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: -fk-line-soft, -fk-hover;
+}
+
+.table-row-cell:empty,
+.table-row-cell:empty:hover {
+    -fx-background-color: -fk-surface;
+}
+
+.table-row-cell:selected,
+.table-row-cell:selected:hover {
+    -fx-background-color: -fk-line-soft, -fk-tint;
+}
+
+/* The keyboard-focus row: a thin accent bar on the left instead of Modena's dotted box. */
+.table-view:focused .table-row-cell:focused {
+    -fx-background-color: -fk-accent, -fk-line-soft, -fk-tint;
+    -fx-background-insets: 0, 0 0 0 3, 0 0 1 3;
+}
+
+.table-cell {
+    -fx-border-color: transparent; /* no vertical grid lines */
+    -fx-cell-size: 30px; /* same as the row, so text is centred vertically */
+    -fx-alignment: center-left;
+    -fx-padding: 0 8 0 8;
+    -fx-text-fill: -fk-ink;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: -fk-ink;
+}
+
+.table-cell.numeric {
+    -fx-alignment: center-right;
+}
+
+.table-row-cell.problem {
+    -fx-background-color: -fk-line-soft, -fk-problem-bg;
+}
+
+.table-row-cell.problem .table-cell {
+    -fx-text-fill: -fk-problem-ink;
+}
+
+.table-row-cell.problem:selected {
+    -fx-background-color: -fk-line-soft, -fk-tint;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -fk-muted;
+    -fx-text-alignment: center;
+}
+
+/* Small tables inside the details sheet get a frame. */
+.details-table {
+    -fx-border-color: -fk-line;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Details sheet                                                                                  */
+/* ---------------------------------------------------------------------------------------------- */
+
+.details,
+.details-scroll,
+.details-scroll > .viewport {
+    -fx-background-color: -fk-surface;
+}
+
+.details-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.party-block {
+    -fx-border-color: transparent transparent transparent -fk-line;
+    -fx-padding: 0 0 0 14;
+}
+
+/* Read-only text fields that look like labels, so values can be selected and copied. */
+.text-field.copyable,
+.text-field.copyable:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 1 0 1 0;
+    -fx-text-fill: -fk-ink;
+    -fx-highlight-fill: #BFE0E4;
+    -fx-highlight-text-fill: -fk-ink;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Form controls (used by dialogs now, by the filter bar next)                                    */
+/* ---------------------------------------------------------------------------------------------- */
+
+.text-field,
+.text-area {
+    -fx-background-color: -fk-line, -fk-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-highlight-fill: #BFE0E4;
+    -fx-highlight-text-fill: -fk-ink;
+}
+
+.text-field:focused,
+.text-area:focused {
+    -fx-background-color: -fk-accent, -fk-surface;
+    -fx-background-insets: 0, 1.5;
+}
+
+.text-area .content {
+    -fx-background-color: -fk-surface;
+    -fx-background-radius: 5;
+    -fx-padding: 8;
+}
+
+.radio-button {
+    -fx-padding: 3 0 3 0;
+}
+
+.radio-button > .radio {
+    -fx-background-color: -fk-line, -fk-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 1em;
+    -fx-padding: 4;
+}
+
+.radio-button:hover > .radio {
+    -fx-background-color: #B9C1CA, -fk-surface;
+}
+
+.radio-button:selected > .radio {
+    -fx-background-color: -fk-accent, -fk-surface;
+    -fx-background-insets: 0, 1.5;
+}
+
+.radio-button > .radio > .dot {
+    -fx-background-color: transparent;
+    -fx-padding: 3.5;
+}
+
+.radio-button:selected > .radio > .dot {
+    -fx-background-color: -fk-accent;
+}
+
+.radio-button:focused > .radio {
+    -fx-effect: dropshadow(gaussian, #0E6B7655, 4, 0.5, 0, 0);
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Dialogs and alerts                                                                             */
+/* ---------------------------------------------------------------------------------------------- */
+
+.dialog-pane {
+    -fx-background-color: -fk-surface;
+    -fx-padding: 0;
+}
+
+.dialog-pane > .header-panel {
+    -fx-background-color: -fk-surface;
+    -fx-padding: 18 20 2 20;
+    -fx-border-color: transparent;
+}
+
+.dialog-pane > .header-panel .label {
+    -fx-font-family: "IBM Plex Sans SmBld";
+    -fx-font-size: 15px;
+}
+
+.dialog-pane > .content {
+    -fx-padding: 12 20 8 20;
+}
+
+.dialog-pane:no-header > .content {
+    -fx-padding: 18 20 8 20;
+}
+
+.dialog-pane > .button-bar > .container {
+    -fx-padding: 12 20 16 20;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Split pane and scroll bars                                                                     */
+/* ---------------------------------------------------------------------------------------------- */
+
+.split-pane {
+    -fx-background-color: -fk-ground;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: -fk-line, -fk-ground;
+    -fx-background-insets: 0, 1 0 1 0;
+    -fx-padding: 3;
+}
+
+.scroll-bar {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 1;
+}
+
+.scroll-bar > .thumb {
+    -fx-background-color: #C5CCD3;
+    -fx-background-insets: 2;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar > .thumb:hover,
+.scroll-bar > .thumb:pressed {
+    -fx-background-color: #A3ADB8;
+}
+
+.scroll-bar > .increment-button,
+.scroll-bar > .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 2 0 2;
+}
+
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+.scroll-pane > .corner,
+.table-view > .corner {
+    -fx-background-color: transparent;
+}
+
+.tooltip {
+    -fx-background-color: -fk-ink;
+    -fx-background-radius: 4;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 5 8 5 8;
+}
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Filter bar                                                                                     */
+/* ---------------------------------------------------------------------------------------------- */
+
+.filter-bar {
+    -fx-background-color: -fk-surface;
+    -fx-border-color: transparent transparent -fk-line transparent;
+    -fx-padding: 10 16 10 16;
+}
+
+.filter-row {
+    -fx-alignment: center-left;
+}
+
+.text-field {
+    -fx-prompt-text-fill: #8A939E;
+    -fx-padding: 5 9 5 9;
+}
+
+.text-field.invalid,
+.text-field.invalid:focused {
+    -fx-background-color: -fk-problem-ink, -fk-surface;
+    -fx-background-insets: 0, 1.5;
+}
+
+.filter-problems {
+    -fx-text-fill: -fk-problem-ink;
+    -fx-font-size: 12px;
+}
+
+.combo-box {
+    -fx-background-color: -fk-line, -fk-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-padding: 0;
+}
+
+.combo-box:hover {
+    -fx-background-color: #C7CED6, -fk-hover;
+}
+
+.combo-box:focused,
+.combo-box:showing {
+    -fx-background-color: -fk-accent, -fk-surface;
+    -fx-background-insets: 0, 1.5;
+}
+
+.combo-box > .list-cell {
+    -fx-padding: 5 9 5 9;
+    -fx-text-fill: -fk-ink;
+    -fx-background-color: transparent;
+}
+
+.combo-box > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 10 0 4;
+}
+
+.combo-box > .arrow-button > .arrow {
+    -fx-background-color: -fk-muted;
+}
+
+.combo-box-popup > .list-view {
+    -fx-background-color: -fk-line, -fk-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-padding: 4;
+    -fx-effect: dropshadow(gaussian, #1D273326, 12, 0, 0, 4);
+}
+
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-padding: 6 9 6 9;
+    -fx-background-color: transparent;
+    -fx-background-radius: 4;
+    -fx-text-fill: -fk-ink;
+}
+
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:hover {
+    -fx-background-color: -fk-hover;
+}
+
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected {
+    -fx-background-color: -fk-tint;
+}

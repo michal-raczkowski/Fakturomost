@@ -83,7 +83,7 @@ class ConvertCommandTest {
     /** What core selects for {@code query} after importing the whole dataset — the reference. */
     private static List<InvoiceEntry> coreSelection(InvoiceQuery query) {
         CoreServices core = CoreServices.create();
-        InputFiles.importAll(core.importer(), List.of(demo("")));
+        core.importer().importInputs(List.of(demo("")));
         return core.catalog().search(query);
     }
 
