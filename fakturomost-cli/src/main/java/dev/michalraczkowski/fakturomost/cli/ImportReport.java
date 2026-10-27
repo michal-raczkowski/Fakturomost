@@ -1,8 +1,10 @@
 package dev.michalraczkowski.fakturomost.cli;
 
+import dev.michalraczkowski.fakturomost.core.application.ImportBatch;
 import dev.michalraczkowski.fakturomost.core.application.ImportResult;
 import dev.michalraczkowski.fakturomost.core.domain.DocumentId;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,16 +70,16 @@ final class ImportReport {
     }
 
     /** Notes about what folder expansion left out, and about finding nothing at all. */
-    static void printNotes(InputFiles.Outcome outcome, PrintWriter err) {
-        if (outcome.skippedFiles() > 0) {
-            err.println("Note: skipped " + plural(outcome.skippedFiles(), "other file")
+    static void printNotes(ImportBatch batch, PrintWriter err) {
+        if (batch.skippedFiles() > 0) {
+            err.println("Note: skipped " + plural(batch.skippedFiles(), "other file")
                     + " in folders (only .xml, .zip and .pdf files are read from folders).");
         }
-        if (outcome.skippedLinks() > 0) {
-            err.println("Note: skipped " + plural(outcome.skippedLinks(), "symbolic link")
+        if (batch.skippedLinks() > 0) {
+            err.println("Note: skipped " + plural(batch.skippedLinks(), "symbolic link")
                     + " in folders (links are not followed).");
         }
-        if (outcome.results().isEmpty()) {
+        if (batch.results().isEmpty()) {
             err.println("Note: no documents found.");
         }
     }
@@ -121,6 +123,13 @@ final class ImportReport {
             }
             return ExitCodes.OK;
         }
+    }
+
+    /** Same rule as core: control characters in names must not break report lines. */
+    static String displayName(Path path) {
+        StringBuilder result = new StringBuilder();
+        path.toString().codePoints().forEach(c -> result.appendCodePoint(Character.isISOControl(c) ? '?' : c));
+        return result.toString();
     }
 
     static String plural(int count, String noun) {

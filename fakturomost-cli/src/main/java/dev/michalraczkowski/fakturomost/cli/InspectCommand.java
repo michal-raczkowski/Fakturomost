@@ -1,5 +1,6 @@
 package dev.michalraczkowski.fakturomost.cli;
 
+import dev.michalraczkowski.fakturomost.core.application.ImportBatch;
 import dev.michalraczkowski.fakturomost.core.application.ImportResult;
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -58,13 +59,13 @@ final class InspectCommand implements Callable<Integer> {
         PrintWriter out = spec.commandLine().getOut();
         PrintWriter err = spec.commandLine().getErr();
 
-        InputFiles.Outcome outcome = InputFiles.importAll(services.get().importer(), paths);
-        List<ImportResult> results = outcome.results();
+        ImportBatch batch = services.get().importer().importInputs(paths);
+        List<ImportResult> results = batch.results();
 
         ImportReport.printLines(results, result -> true, out);
         ImportReport.Summary summary = ImportReport.Summary.of(results);
         out.println(summary.text());
-        ImportReport.printNotes(outcome, err);
+        ImportReport.printNotes(batch, err);
         return summary.exitCode();
     }
 }

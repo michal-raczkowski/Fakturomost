@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="Fakturomost logo: a bridge over water">
+  <rect width="96" height="96" rx="22" fill="#0E6B76"/>
+  <!-- the "most" (bridge): a flat deck carried by an arch -->
+  <path d="M12 36 H84" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  <path d="M20 64 Q48 8 76 64" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <path d="M27 36 V51 M34 36 V43 M62 36 V43 M69 36 V51" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- water: the flow of invoices underneath -->
+  <path d="M14 73 q6.5 -5 13 0 t13 0 t13 0 t13 0 t13 0" fill="none" stroke="#9ED3D9" stroke-width="4" stroke-linecap="round"/>
+  <path d="M27 82 q6.5 -5 13 0 t13 0 t13 0" fill="none" stroke="#9ED3D9" stroke-width="4" stroke-linecap="round" opacity="0.65"/>
+</svg>

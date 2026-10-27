@@ -1,6 +1,7 @@
 package dev.michalraczkowski.fakturomost.cli;
 
 import dev.michalraczkowski.fakturomost.core.application.CsvOptions;
+import dev.michalraczkowski.fakturomost.core.application.ImportBatch;
 import dev.michalraczkowski.fakturomost.core.application.ImportResult;
 import dev.michalraczkowski.fakturomost.core.application.InvoiceEntry;
 import dev.michalraczkowski.fakturomost.core.application.InvoiceQuery;
@@ -177,14 +178,14 @@ final class ConvertCommand implements Callable<Integer> {
         checkOutputBeforeImport();
 
         CoreServices core = services.get();
-        InputFiles.Outcome outcome = InputFiles.importAll(core.importer(), paths);
-        checkOutputIsNotAnInput(outcome.filesRead());
+        ImportBatch batch = core.importer().importInputs(paths);
+        checkOutputIsNotAnInput(batch.filesRead());
 
-        List<ImportResult> results = outcome.results();
+        List<ImportResult> results = batch.results();
         ImportReport.printLines(results, ImportReport::isProblem, err);
         ImportReport.Summary summary = ImportReport.Summary.of(results);
         err.println(summary.text());
-        ImportReport.printNotes(outcome, err);
+        ImportReport.printNotes(batch, err);
 
         int available = core.catalog().search(InvoiceQuery.all()).size();
         List<InvoiceEntry> selected = core.catalog().search(query());
@@ -314,6 +315,6 @@ final class ConvertCommand implements Callable<Integer> {
     }
 
     private static String display(Path path) {
-        return InputFiles.displayName(path);
+        return ImportReport.displayName(path);
     }
 }

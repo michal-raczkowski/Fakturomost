@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /**
  * Use case: import documents into a {@link DocumentStore}, one {@link ImportResult} per document.
@@ -72,6 +73,77 @@ public final class InvoiceImporter {
             fileReader.read(path, sink);
         }
         return results;
+    }
+
+    /** Same as {@link #importInputs(List, ImportProgress)} without observing or cancelling. */
+    public ImportBatch importInputs(List<Path> inputs) {
+        return importInputs(inputs, ImportProgress.NONE);
+    }
+
+    /**
+     * Imports files <em>and folders</em> chosen by a user — the shared entry point of the desktop
+     * app and the CLI, so both read exactly the same files:
+     * <ul>
+     *   <li>A path given directly is always read, whatever its extension, as by {@link #importPaths}
+     *       (ZIP archives are detected by content, anything else is reported).</li>
+     *   <li>A folder is searched recursively, in name order, for files ending in {@code .xml},
+     *       {@code .zip} or {@code .pdf} (any case). PDFs are included so a PDF downloaded from KSeF
+     *       by mistake gets the "download as XML" message instead of being ignored. Other files
+     *       ({@code README.md}, {@code desktop.ini}, ...) are skipped and only counted.</li>
+     *   <li>Symbolic links inside a folder are skipped, not followed: no loops, and nothing outside
+     *       the chosen folder is read. A folder that leads back to one of its own parents (e.g. a
+     *       Windows junction, which the JDK does not see as a link) is skipped the same way.</li>
+     *   <li>A folder that cannot be listed becomes a {@code Failed} result, like an unreadable file.</li>
+     * </ul>
+     * Results come in order, one per document, so nothing is dropped silently.
+     *
+     * <p>{@code progress} hears about every result and can stop the import between documents;
+     * see {@link ImportProgress}.
+     */
+    public ImportBatch importInputs(List<Path> inputs, ImportProgress progress) {
+        Objects.requireNonNull(inputs, "inputs");
+        Objects.requireNonNull(progress, "progress");
+        List<ImportResult> results = new ArrayList<>();
+        Consumer<ImportResult> add = result -> {
+            results.add(result);
+            progress.resultAdded(result, results.size());
+        };
+        SourceFileReader.Sink sink = new SourceFileReader.Sink() {
+            @Override
+            public void document(SourceDocument document) {
+                stopIfCancelled(progress);
+                add.accept(importDocument(document));
+            }
+
+            @Override
+            public void rejected(ImportResult result) {
+                add.accept(result);
+            }
+        };
+        InputWalker walker = new InputWalker(path -> {
+            stopIfCancelled(progress);
+            fileReader.read(path, sink);
+        }, add);
+        boolean cancelled = false;
+        try {
+            walker.walkAll(List.copyOf(inputs));
+        } catch (ImportCancelled e) {
+            cancelled = true;
+        }
+        return new ImportBatch(results, walker.filesRead(), walker.skippedFiles(), walker.skippedLinks(), cancelled);
+    }
+
+    private static void stopIfCancelled(ImportProgress progress) {
+        if (progress.isCancelled()) {
+            throw new ImportCancelled();
+        }
+    }
+
+    /** Unwinds out of the file reader and folder walk; never leaves {@link #importInputs}. */
+    private static final class ImportCancelled extends RuntimeException {
+        ImportCancelled() {
+            super(null, null, false, false);
+        }
     }
 
     /** Imports the documents in order; duplicates within the list are detected too. */
