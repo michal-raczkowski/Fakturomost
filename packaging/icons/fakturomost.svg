@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="Fakturomost">
+  <rect width="64" height="64" rx="14" fill="#013F71"/>
+  <path d="M14 10H40L50 20V54H43Q32 40 21 54H14Z" fill="#FFFFFF"/>
+  <path d="M20 20H40V10L50 20V26H27V31H37V36H27V43H20Z" fill="#DC0032"/>
+  <path d="M27.5 51.5q2.25 -1.5 4.5 0t4.5 0" fill="none" stroke="#FFFFFF" stroke-opacity="0.7" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M17 59q2.5 -1.6 5 0t5 0t5 0t5 0t5 0t5 0" fill="none" stroke="#FFFFFF" stroke-opacity="0.7" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

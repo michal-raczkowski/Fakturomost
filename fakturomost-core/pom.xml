@@ -16,9 +16,55 @@
     <!-- Intentionally no Spring, JavaFX or SQLite here -->
     <dependencies>
         <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <!-- version comes from the parent's pluginManagement -->
+                <executions>
+                    <execution>
+                        <!-- separate id: the parent's 'enforce-build-rules' execution still runs too -->
+                        <id>enforce-framework-free-core</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <message>
+                                        fakturomost-core must stay framework-free (ADR 0001).
+                                        UI, Spring, database and OS-specific libraries belong in desktop or cli.
+                                    </message>
+                                    <excludes>
+                                        <exclude>org.openjfx</exclude>
+                                        <exclude>org.springframework*</exclude>
+                                        <exclude>org.xerial:sqlite-jdbc</exclude>
+                                        <exclude>io.github.willena:sqlite-jdbc</exclude>
+                                        <exclude>org.postgresql</exclude>
+                                        <exclude>net.java.dev.jna</exclude>
+                                        <exclude>info.picocli</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

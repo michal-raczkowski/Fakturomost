@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic test invoice. All names and identifiers are fictitious. -->
+<fa:Faktura xmlns:fa="http://crd.gov.pl/wzor/2025/06/25/13775/"
+            xmlns:etd="http://crd.gov.pl/xml/schematy/dziedzinowe/mf/2022/01/05/eD/DefinicjeTypy/">
+  <fa:Naglowek>
+    <fa:KodFormularza kodSystemowy="FA (3)" wersjaSchemy="1-0E">FA</fa:KodFormularza>
+    <fa:WariantFormularza>3</fa:WariantFormularza>
+    <fa:DataWytworzeniaFa>2026-10-21T12:00:00</fa:DataWytworzeniaFa>
+  </fa:Naglowek>
+  <fa:Podmiot1>
+    <fa:DaneIdentyfikacyjne>
+      <fa:NIP>9999999999</fa:NIP>
+      <fa:Nazwa>Przykładowa Spółka Testowa sp. z o.o.</fa:Nazwa>
+    </fa:DaneIdentyfikacyjne>
+    <fa:Adres>
+      <fa:KodKraju>PL</fa:KodKraju>
+      <fa:AdresL1>ul. Fikcyjna 1</fa:AdresL1>
+    </fa:Adres>
+  </fa:Podmiot1>
+  <fa:Podmiot2>
+    <fa:DaneIdentyfikacyjne>
+      <fa:KodUE>DE</fa:KodUE>
+      <fa:NrVatUE>123456789</fa:NrVatUE>
+      <fa:Nazwa>
+        Beispiel   Handels
+        GmbH
+      </fa:Nazwa>
+    </fa:DaneIdentyfikacyjne>
+    <fa:Adres>
+      <fa:KodKraju>DE</fa:KodKraju>
+      <fa:AdresL1>Musterstraße 5, 10115 Berlin</fa:AdresL1>
+    </fa:Adres>
+    <fa:JST>2</fa:JST>
+    <fa:GV>2</fa:GV>
+  </fa:Podmiot2>
+  <fa:Podmiot3>
+    <fa:DaneIdentyfikacyjne>
+      <fa:NIP>3333333333</fa:NIP>
+      <fa:Nazwa>Decoy third party – must not be read as the buyer</fa:Nazwa>
+    </fa:DaneIdentyfikacyjne>
+    <fa:Rola>4</fa:Rola>
+  </fa:Podmiot3>
+  <fa:Fa>
+    <fa:KodWaluty>EUR</fa:KodWaluty>
+    <fa:P_1>2026-10-21</fa:P_1>
+    <fa:P_2>  FK/2026/10/0007  </fa:P_2>
+    <fa:P_13_1>-100.00</fa:P_13_1>
+    <fa:P_14_1>-23.00</fa:P_14_1>
+    <fa:P_14_1W>-98.12</fa:P_14_1W>
+    <fa:P_15>-123.00</fa:P_15>
+    <fa:Adnotacje>
+      <fa:P_16>2</fa:P_16>
+      <fa:P_17>2</fa:P_17>
+      <fa:P_18>2</fa:P_18>
+      <fa:P_18A>2</fa:P_18A>
+      <fa:Zwolnienie>
+        <fa:P_19N>1</fa:P_19N>
+      </fa:Zwolnienie>
+      <fa:NoweSrodkiTransportu>
+        <fa:P_22N>1</fa:P_22N>
+      </fa:NoweSrodkiTransportu>
+      <fa:P_23>2</fa:P_23>
+      <fa:PMarzy>
+        <fa:P_PMarzyN>1</fa:P_PMarzyN>
+      </fa:PMarzy>
+    </fa:Adnotacje>
+    <fa:RodzajFaktury>KOR</fa:RodzajFaktury>
+    <fa:PrzyczynaKorekty>Rabat posprzedażowy</fa:PrzyczynaKorekty>
+    <fa:TypKorekty>2</fa:TypKorekty>
+    <fa:DaneFaKorygowanej>
+      <fa:DataWystFaKorygowanej>2026-10-01</fa:DataWystFaKorygowanej>
+      <fa:NrFaKorygowanej>FV/2026/10/0001</fa:NrFaKorygowanej>
+      <fa:NrKSeF>1</fa:NrKSeF>
+      <fa:NrKSeFFaKorygowanej>9999999999-20261001-0123456789AB-CD</fa:NrKSeFFaKorygowanej>
+    </fa:DaneFaKorygowanej>
+    <fa:DaneFaKorygowanej>
+      <fa:DataWystFaKorygowanej>2026-09-15</fa:DataWystFaKorygowanej>
+      <fa:NrFaKorygowanej>FV/2026/09/0099</fa:NrFaKorygowanej>
+      <fa:NrKSeFN>1</fa:NrKSeFN>
+    </fa:DaneFaKorygowanej>
+    <fa:Podmiot2K>
+      <fa:DaneIdentyfikacyjne>
+        <fa:NIP>4444444444</fa:NIP>
+        <fa:Nazwa>Decoy corrected-buyer data – must not be read as the buyer</fa:Nazwa>
+      </fa:DaneIdentyfikacyjne>
+    </fa:Podmiot2K>
+    <fa:FaWiersz>
+      <fa:NrWierszaFa>1</fa:NrWierszaFa>
+      <fa:P_7>Licencja roczna</fa:P_7>
+      <fa:P_8A>szt.</fa:P_8A>
+      <fa:P_8B>10</fa:P_8B>
+      <fa:P_9A>50</fa:P_9A>
+      <fa:P_11>500</fa:P_11>
+      <fa:P_12>23</fa:P_12>
+      <fa:StanPrzed>1</fa:StanPrzed>
+    </fa:FaWiersz>
+    <fa:FaWiersz>
+      <fa:NrWierszaFa>1</fa:NrWierszaFa>
+      <fa:P_7>Licencja roczna</fa:P_7>
+      <fa:P_8A>szt.</fa:P_8A>
+      <fa:P_8B>10</fa:P_8B>
+      <fa:P_9A>40</fa:P_9A>
+      <fa:P_11>400</fa:P_11>
+      <fa:P_12>23</fa:P_12>
+    </fa:FaWiersz>
+  </fa:Fa>
+</fa:Faktura>
