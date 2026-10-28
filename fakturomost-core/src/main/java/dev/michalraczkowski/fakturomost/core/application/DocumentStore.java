@@ -29,4 +29,7 @@ public interface DocumentStore {
      * caller applies {@link InvoiceQuery#matches}), never fewer.
      */
     List<InvoiceEntry> findInvoices(InvoiceQuery query);
+
+    /** Stored documents in formats Fakturomost cannot read (no invoice data), in any order. */
+    List<OtherDocument> findOtherDocuments();
 }

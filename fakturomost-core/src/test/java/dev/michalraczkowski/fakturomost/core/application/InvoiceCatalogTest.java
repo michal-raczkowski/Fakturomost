@@ -189,6 +189,11 @@ class InvoiceCatalogTest {
             public List<InvoiceEntry> findInvoices(InvoiceQuery query) {
                 return store.findInvoices(InvoiceQuery.all());
             }
+
+            @Override
+            public List<OtherDocument> findOtherDocuments() {
+                return store.findOtherDocuments();
+            }
         };
 
         List<InvoiceEntry> result = new InvoiceCatalog(loose).search(InvoiceQuery.all().withText("inna"));

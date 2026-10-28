@@ -20,7 +20,7 @@ public enum ExportFormat {
     CSV_STANDARD("CSV, standard (comma, decimal point)", "CSV file", ".csv"),
     JSON("JSON", "JSON file", ".json"),
     XML_ZIP("Original XML, in one ZIP archive", "ZIP archive", ".zip"),
-    XML_FOLDER("Original XML, one file per invoice in a folder", null, null);
+    XML_FOLDER("Original XML, one file per document in a folder", null, null);
 
     private final String label;
     private final String fileDescription;
@@ -103,8 +103,22 @@ public enum ExportFormat {
 
     /** Shown after a successful export. */
     public String doneMessage(int invoiceCount, Path target) {
-        String what = ImportSummary.plural(invoiceCount, "invoice");
+        return doneMessage(invoiceCount, "invoice", target);
+    }
+
+    /** @param noun singular, e.g. {@code document} for the originals of other-format documents */
+    public String doneMessage(int count, String noun, Path target) {
+        String what = ImportSummary.plural(count, noun);
         return "Exported " + what + " to " + Formats.singleLine(target.toString()) + " (" + label + ").";
+    }
+
+    /** The formats that write original files — the only ones for documents Fakturomost cannot read. */
+    public static List<ExportFormat> originalFormats() {
+        return List.of(XML_ZIP, XML_FOLDER);
+    }
+
+    public boolean writesOriginals() {
+        return this == XML_ZIP || this == XML_FOLDER;
     }
 
     /** Shown in the export dialog and again after exporting. */
