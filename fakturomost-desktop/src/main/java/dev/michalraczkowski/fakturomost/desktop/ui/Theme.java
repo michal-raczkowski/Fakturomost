@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Objects;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.Dialog;
 import javafx.scene.text.Font;
 
@@ -26,7 +28,38 @@ public final class Theme {
     static final String STYLESHEET =
             Objects.requireNonNull(Theme.class.getResource("fakturomost.css"), "fakturomost.css").toExternalForm();
 
+    /**
+     * Sizes of the logo renders in {@code icons/fakturomost-<size>.png} (design spec §5.8). The 16 and
+     * 24 px files use the small-size variant (no inner wave); {@code fakturomost-24@2x.png} is the same
+     * variant for HiDPI screens, picked up by JavaFX automatically.
+     */
+    static final List<Integer> ICON_SIZES = List.of(16, 24, 32, 48, 64, 128, 256);
+
     private Theme() {
+    }
+
+    /** Window and taskbar icons, every size, so the OS can pick the closest one. */
+    static List<Image> windowIcons() {
+        return ICON_SIZES.stream().map(size -> new Image(icon(size))).toList();
+    }
+
+    /**
+     * The logo mark at {@code size} px: the small-size variant at 24 px and below (header), the full
+     * mark above (About dialog), drawn from the next larger render so it stays sharp on HiDPI.
+     */
+    static ImageView mark(int size) {
+        int source = size <= 24 ? 24 : ICON_SIZES.stream().filter(s -> s >= 2 * size).findFirst().orElse(256);
+        ImageView view = new ImageView(new Image(icon(source)));
+        view.setFitWidth(size);
+        view.setFitHeight(size);
+        view.setSmooth(true);
+        view.getStyleClass().add("mark");
+        return view;
+    }
+
+    private static String icon(int size) {
+        String name = "icons/fakturomost-" + size + ".png";
+        return Objects.requireNonNull(Theme.class.getResource(name), name).toExternalForm();
     }
 
     /**

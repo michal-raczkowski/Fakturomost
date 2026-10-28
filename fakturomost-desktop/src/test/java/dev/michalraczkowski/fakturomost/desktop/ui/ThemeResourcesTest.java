@@ -10,6 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.HexFormat;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -51,10 +52,40 @@ class ThemeResourcesTest {
     }
 
     @Test
+    void stylesheetUsesTheBrandPaletteNotTheOldTeal() throws IOException {
+        String css = new String(resource("fakturomost.css"), StandardCharsets.UTF_8).toUpperCase(Locale.ROOT);
+
+        // Design spec §3: the KSeF-derived palette replaces river teal everywhere.
+        assertThat(css).doesNotContain("0E6B76", "DDEFF1", "BFE0E4", "E8F1F2", "9F2A1F");
+        assertThat(css).contains("-FK-ACCENT: #013F71;", "-FK-LINK: #0052A5;", "-FK-TINT: #E5EDF5;",
+                "-FK-BRAND-RED: #DC0032;", "-FK-PROBLEM-INK: #B3001F;");
+        // Brand red is for the header stripe only, never an interactive or error state.
+        String rules = css.replaceAll("(?s)/\\*.*?\\*/", "");
+        assertThat(rules.split("-FK-BRAND-RED", -1)).as("declared once, used once").hasSize(3);
+    }
+
+    @Test
+    void logoIconsArePngsOfTheirNamedSize() throws IOException {
+        for (int size : Theme.ICON_SIZES) {
+            assertThat(pngSize("icons/fakturomost-" + size + ".png")).as(size + " px").containsExactly(size, size);
+        }
+        assertThat(pngSize("icons/fakturomost-24@2x.png")).as("HiDPI header mark").containsExactly(48, 48);
+    }
+
+    @Test
     void digitsAreTabularSoAmountsLineUp() throws IOException {
         for (String file : Theme.FONT_FILES) {
             assertThat(digitAdvanceWidths(font(file))).as(file).hasSize(1);
         }
+    }
+
+    /** Width and height from the IHDR chunk, after checking the PNG signature. */
+    private static int[] pngSize(String name) throws IOException {
+        byte[] bytes = resource(name);
+        assertThat(bytes).as(name).isNotNull();
+        ByteBuffer png = ByteBuffer.wrap(bytes);
+        assertThat(png.getLong(0)).as(name + " is a PNG").isEqualTo(0x89504E470D0A1A0AL);
+        return new int[] {png.getInt(16), png.getInt(20)};
     }
 
     // --- minimal TrueType reading (tables: name, cmap format 4, hhea, hmtx) -----------------------

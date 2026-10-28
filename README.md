@@ -1,16 +1,19 @@
 <div align="center">
 
-<img src="docs/images/logo.svg" width="96" height="96" alt="Fakturomost logo: a bridge over water">
-
-# Fakturomost
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/logo-lockup-dark.svg">
+    <img src="docs/images/logo-lockup.svg" height="72" alt="Fakturomost — logo: an invoice sheet with a red F whose bottom edge is a bridge arch over water">
+  </picture>
+</h1>
 
 **A local, private bridge between KSeF and your business software.**<br>
 Open-source desktop app and CLI to import, browse, validate and export Polish **KSeF FA(3) e-invoices** (XML/ZIP) to **CSV, Excel, JSON** or the original XML — offline, on your own computer.
 
 [![CI](https://github.com/michalraczkowski/fakturomost/actions/workflows/ci.yml/badge.svg)](https://github.com/michalraczkowski/fakturomost/actions/workflows/ci.yml)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-0E6B76.svg)](LICENSE)
-![Java 21](https://img.shields.io/badge/Java-21-0E6B76.svg)
-![JavaFX](https://img.shields.io/badge/UI-JavaFX-0E6B76.svg)
+[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-013F71.svg)](LICENSE)
+![Java 21](https://img.shields.io/badge/Java-21-013F71.svg)
+![JavaFX](https://img.shields.io/badge/UI-JavaFX-013F71.svg)
 ![Status: experimental](https://img.shields.io/badge/status-experimental-E6A700.svg)
 
 [Features](#features) · [Download](#download) · [Build from source](#quick-start-from-source) · [CLI](#command-line-tool) · [Exports](#export-formats) · [Security](#security-and-privacy) · [Architecture](#architecture) · [Roadmap](#roadmap) · [Po polsku](#po-polsku)
@@ -313,7 +316,7 @@ Production KSeF connectivity is intentionally out of scope for the public demo.
 ## FAQ
 
 **Is this an official Ministry of Finance application?**<br>
-No. Fakturomost is independent and not affiliated with or endorsed by the Polish Ministry of Finance. "KSeF" is used only to describe compatibility.
+No. Fakturomost is independent and not affiliated with or endorsed by the Polish Ministry of Finance. "KSeF" is used only to describe compatibility. Colours inspired by KSeF; not an official Ministry of Finance product.
 
 **Does Fakturomost send my invoices anywhere?**<br>
 No. It has no server and no telemetry, and it does not connect to KSeF in this version. A test checks that the desktop app opens no network listeners.

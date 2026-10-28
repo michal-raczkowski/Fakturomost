@@ -124,11 +124,15 @@ public final class MainWindow {
         gap.setMinWidth(16);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(wordmark, version, gap, importFolder, importFiles, exportButton, spacer, about);
+        HBox header = new HBox(Theme.mark(24), wordmark, version, gap, importFolder, importFiles, exportButton, spacer,
+                about);
         header.getStyleClass().add("app-header");
 
         Label banner = new Label(Notices.BANNER);
         banner.getStyleClass().add("banner");
+        Region info = new Region(); // shape and colour come from .info-icon in fakturomost.css
+        info.getStyleClass().add("info-icon");
+        banner.setGraphic(info);
         banner.setMaxWidth(Double.MAX_VALUE);
         banner.setWrapText(true);
 
@@ -182,6 +186,7 @@ public final class MainWindow {
         refreshTable();
 
         stage.setTitle(services.product().displayName());
+        stage.getIcons().setAll(Theme.windowIcons());
         stage.setScene(scene);
         stage.setMinWidth(800);
         stage.setMinHeight(500);
@@ -513,7 +518,8 @@ public final class MainWindow {
         text.setWrapText(true);
         text.setPrefRowCount(18);
         text.setPrefColumnCount(60);
-        alert.getDialogPane().setContent(text);
+        VBox content = new VBox(12, Theme.mark(64), text);
+        alert.getDialogPane().setContent(content);
         alert.showAndWait();
     }
 
