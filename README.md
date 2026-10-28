@@ -18,9 +18,9 @@ Open-source desktop app and CLI to import, browse, validate and export Polish **
 
 [Features](#features) · [Download](#download) · [Build from source](#quick-start-from-source) · [CLI](#command-line-tool) · [Exports](#export-formats) · [Security](#security-and-privacy) · [Architecture](#architecture) · [Roadmap](#roadmap) · [Po polsku](#po-polsku)
 
-<img src="docs/images/demo.gif" width="900" alt="Fakturomost demo: importing a folder of KSeF invoices, reading the import report, opening a correction invoice, searching, and exporting four invoices to a CSV file for Excel">
+<img src="docs/images/demo.gif" width="900" alt="Fakturomost demo: importing a folder of KSeF invoices, reading the import report, opening a correction invoice, searching, choosing the export columns (renaming the issue date to Data21 and adding net and VAT at 23%), and exporting four invoices to a CSV file for Excel">
 
-<sub>Import a folder of KSeF downloads → see what was imported and why something was rejected → browse and search → export the selection to CSV for Excel. Demo data is fully synthetic.</sub>
+<sub>Import a folder of KSeF downloads → see what was imported and why something was rejected → browse and search → choose and rename the export columns → export the selection to CSV for Excel. Demo data is fully synthetic.</sub>
 
 </div>
 
@@ -38,7 +38,7 @@ Fakturomost sits between the two:
 1. **Download** your invoices from KSeF as XML or a ZIP package (e.g. from the taxpayer application *Aplikacja Podatnika KSeF*).
 2. **Import** the files or the whole folder into Fakturomost.
 3. **Browse, search and check** them in a clear table with full invoice details.
-4. **Export** exactly the invoices you need to **CSV (ready for Excel with Polish settings)**, **JSON**, or as **original, unchanged XML**.
+4. **Export** exactly the invoices you need to **CSV (ready for Excel with Polish settings)**, **JSON**, or as **original, unchanged XML** — with the columns, order and header names your other software expects.
 
 Everything happens **locally**. Fakturomost has no server, no account, no telemetry, and does not connect to KSeF in this version.
 
@@ -81,7 +81,7 @@ What works today (see the [roadmap](#roadmap) for what's next):
   </tr>
   <tr>
     <td width="50%"><img src="docs/images/screenshot-filters.png" alt="Search for 'kawiarnia' showing 2 of 7 invoices"><br><sub><b>Search and filters</b> — text, NIP, dates, amounts, type</sub></td>
-    <td width="50%"><img src="docs/images/screenshot-export.png" alt="Export dialog: selected or all shown invoices, CSV, JSON or original XML, and a warning that exported files are not encrypted"><br><sub><b>Export</b> — selected or all shown invoices, as CSV for Excel, CSV, JSON or original XML</sub></td>
+    <td width="50%"><img src="docs/images/screenshot-export.png" alt="Export dialog: selected or all shown invoices, CSV for Excel, standard CSV, JSON with chosen fields, complete JSON or original XML, and a warning that exported files are not encrypted"><br><sub><b>Export</b> — selected or all shown invoices, as CSV, JSON (chosen fields or complete) or original XML; CSV and chosen-fields JSON continue to <a href="#csv-one-row-per-invoice">column selection</a></sub></td>
   </tr>
 </table>
 
@@ -322,7 +322,7 @@ Design principles: the core knows nothing about Spring, JavaFX, databases or the
 | 1 | Project foundation: modules, Spring without HTTP, CI on Linux + Windows | ✅ Done |
 | 2 | Invoice processing: FA(3) parsing, offline XSD validation, XML/ZIP import, dedup, CSV/JSON/XML export | ✅ Done |
 | 3 | Command-line tool: `inspect`, `convert` | ✅ Done |
-| 4 | Desktop app: import, invoice table, details, filters, export | ✅ Done |
+| 4 | Desktop app: import, invoice table, details, filters, export (incl. choosing, ordering and renaming columns) | ✅ Done |
 | 5 | Secure local storage: encrypted SQLite, DPAPI-protected key, data survives restarts | 🚧 Next up |
 | 6 | Windows installer with bundled Java runtime and demo data | 🧪 Portable Windows/Linux builds available; installer planned |
 | 7 | Hardening: encrypted backup and restore, threat model, documentation | 📋 Planned |
