@@ -9,6 +9,8 @@ import dev.michalraczkowski.fakturomost.core.application.OtherDocument;
 import dev.michalraczkowski.fakturomost.core.domain.DocumentId;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.ExportFormat;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.ExportScope;
+import dev.michalraczkowski.fakturomost.desktop.ui.model.ExportSession;
+import dev.michalraczkowski.fakturomost.desktop.ui.model.ExportSetup;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.FilterInput;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.Formats;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.ImportSummary;
@@ -87,7 +89,8 @@ public final class MainWindow {
     private boolean busy;
     private ImportSummary lastSummary;
     private File lastDirectory;
-    private ExportFormat lastFormat = ExportFormat.CSV_EXCEL_PL;
+    /** Export choices (format, columns, CSV settings) remembered until the app closes. */
+    private final ExportSession exportSession = new ExportSession();
     /** Increases with every selection change, so a slow detail load cannot overwrite a newer one. */
     private long detailsGeneration;
     /** Same for searches: only the newest filter's result reaches the table. */
@@ -372,29 +375,54 @@ public final class MainWindow {
 
     // --- Export ----------------------------------------------------------------------------------
 
-    /** "Export…": the selected rows or all rows the filters show, in any format. */
+    /**
+     * "Export…": the selected rows or all rows the filters show, in any format. CSV and chosen-fields
+     * JSON go through the columns step, which can lead back to step 1.
+     */
     private void export() {
         if (busy || table.size() == 0) {
             return;
         }
         List<InvoiceRow> selected = table.selectedInDisplayOrder();
         List<InvoiceRow> shown = table.shownInDisplayOrder();
-        Optional<ExportDialog.Choice> choice =
-                ExportDialog.chooseForInvoices(stage, selected.size(), shown.size(), filteredView, lastFormat);
-        if (choice.isEmpty()) {
-            return;
+        ExportFormat format = exportSession.lastFormat();
+        ExportScope scope = null;
+        ExportSetup setup;
+        List<InvoiceEntry> invoices;
+        while (true) {
+            Optional<ExportDialog.Choice> choice = ExportDialog.chooseForInvoices(
+                    stage, selected.size(), shown.size(), filteredView, format, scope);
+            if (choice.isEmpty()) {
+                return;
+            }
+            format = choice.get().format();
+            scope = choice.get().scope();
+            invoices = (scope == ExportScope.SELECTED ? selected : shown).stream().map(InvoiceRow::entry).toList();
+            setup = exportSession.setupFor(format);
+            if (!format.hasColumns()) {
+                break;
+            }
+            Optional<ExportColumnsDialog.Result> columns =
+                    ExportColumnsDialog.show(stage, setup, services.exports(), invoices);
+            if (columns.isEmpty()) {
+                return; // Cancel: the remembered columns stay as they were
+            }
+            exportSession.remember(columns.get().setup()); // also on Back, so going back loses nothing
+            if (columns.get().outcome() == ExportColumnsDialog.Outcome.CONTINUE) {
+                setup = columns.get().setup();
+                break;
+            }
         }
-        ExportFormat format = choice.get().format();
-        lastFormat = format;
-        List<InvoiceEntry> invoices = (choice.get().scope() == ExportScope.SELECTED ? selected : shown).stream()
-                .map(InvoiceRow::entry).toList();
+        exportSession.remember(setup);
         Path location = chooseExportLocation(format);
         if (location == null) {
             return;
         }
         Path target = format.normalizeTarget(location);
-        runExport(target, format, format.doneMessage(invoices.size(), target), false,
-                overwrite -> format.export(services.exports(), invoices, target, overwrite));
+        ExportSetup chosen = setup;
+        List<InvoiceEntry> rows = invoices;
+        runExport(target, format, format.doneMessage(rows.size(), target), false,
+                overwrite -> chosen.export(services.exports(), rows, target, overwrite));
     }
 
     /** The originals of every document in another format (FA(2), ...), as ZIP or into a folder. */

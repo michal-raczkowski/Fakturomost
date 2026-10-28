@@ -3,7 +3,6 @@ package dev.michalraczkowski.fakturomost.desktop.ui.model;
 import dev.michalraczkowski.fakturomost.core.application.CsvOptions;
 import dev.michalraczkowski.fakturomost.core.application.InvoiceEntry;
 import dev.michalraczkowski.fakturomost.core.application.InvoiceExports;
-import dev.michalraczkowski.fakturomost.core.domain.DocumentId;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -18,7 +17,8 @@ public enum ExportFormat {
 
     CSV_EXCEL_PL("CSV for Excel (Polish settings)", "CSV file", ".csv"),
     CSV_STANDARD("CSV, standard (comma, decimal point)", "CSV file", ".csv"),
-    JSON("JSON", "JSON file", ".json"),
+    JSON_FIELDS("JSON, chosen fields (one flat object per invoice)", "JSON file", ".json"),
+    JSON("JSON, complete invoices (line items, VAT buckets)", "JSON file", ".json"),
     XML_ZIP("Original XML, in one ZIP archive", "ZIP archive", ".zip"),
     XML_FOLDER("Original XML, one file per document in a folder", null, null);
 
@@ -34,6 +34,29 @@ public enum ExportFormat {
 
     public String label() {
         return label;
+    }
+
+    /** Formats whose columns (fields, order, names) the user chooses in the export dialog. */
+    public boolean hasColumns() {
+        return isCsv() || this == JSON_FIELDS;
+    }
+
+    public boolean isCsv() {
+        return this == CSV_EXCEL_PL || this == CSV_STANDARD;
+    }
+
+    /** The core preset a CSV format starts from. */
+    public CsvOptions csvPreset() {
+        return switch (this) {
+            case CSV_EXCEL_PL -> CsvOptions.excelPl();
+            case CSV_STANDARD -> CsvOptions.standard();
+            default -> throw new IllegalStateException(this + " is not CSV");
+        };
+    }
+
+    /** Polish column names for CSV (like the presets), English keys for JSON. */
+    public ColumnLayout.Names defaultNames() {
+        return this == JSON_FIELDS ? ColumnLayout.Names.ENGLISH : ColumnLayout.Names.POLISH;
     }
 
     /** {@code true}: ask for a folder; {@code false}: ask for a file name. */
@@ -70,9 +93,8 @@ public enum ExportFormat {
     }
 
     /**
-     * Runs the export. Without {@code overwrite} nothing existing is replaced (core throws
-     * {@link java.nio.file.FileAlreadyExistsException}); the dialog asks the user and only then
-     * repeats with {@code overwrite = true}.
+     * Runs the export with this format's {@linkplain ExportSetup#defaults defaults} (the presets'
+     * columns and names). The dialog uses {@link ExportSetup#export} with the user's choices.
      *
      * @param invoices in table order
      * @param target   already {@linkplain #normalizeTarget normalized}
@@ -80,16 +102,7 @@ public enum ExportFormat {
      */
     public List<Path> export(InvoiceExports exports, List<InvoiceEntry> invoices, Path target, boolean overwrite)
             throws IOException {
-        switch (this) {
-            case CSV_EXCEL_PL -> exports.exportCsv(invoices, CsvOptions.excelPl(), target, overwrite);
-            case CSV_STANDARD -> exports.exportCsv(invoices, CsvOptions.standard(), target, overwrite);
-            case JSON -> exports.exportJson(invoices, target, overwrite);
-            case XML_ZIP, XML_FOLDER -> {
-                List<DocumentId> ids = invoices.stream().map(InvoiceEntry::id).toList();
-                return exports.exportOriginals(ids, target, overwrite);
-            }
-        }
-        return List.of(target);
+        return ExportSetup.defaults(this).export(exports, invoices, target, overwrite);
     }
 
     /** Asked when an export without overwrite hit an existing file; the answer decides {@code overwrite}. */

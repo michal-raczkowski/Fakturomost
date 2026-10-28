@@ -35,6 +35,9 @@ final class JsonInvoiceWriter {
 
     static final String FORMAT = "fakturomost-invoices";
     static final int FORMAT_VERSION = 1;
+    /** Format name of the export with chosen fields ({@link JsonOptions}); versioned separately. */
+    static final String FIELDS_FORMAT = "fakturomost-invoice-fields";
+    static final int FIELDS_FORMAT_VERSION = 1;
 
     private static final JsonFactory FACTORY = JsonFactory.builder()
             .enable(StreamWriteFeature.WRITE_BIGDECIMAL_AS_PLAIN)
@@ -62,6 +65,33 @@ final class JsonInvoiceWriter {
             }
             json.writeEndArray();
             json.writeEndObject();
+        }
+    }
+
+    /** One flat object per invoice with only the chosen columns, under the chosen keys. */
+    static void write(List<InvoiceEntry> invoices, JsonOptions options, OutputStream out) {
+        try (JsonGenerator json = FACTORY.createGenerator(PRETTY, out)) {
+            json.writeStartObject();
+            json.writeStringProperty("format", FIELDS_FORMAT);
+            json.writeNumberProperty("formatVersion", FIELDS_FORMAT_VERSION);
+            json.writeArrayPropertyStart("invoices");
+            for (InvoiceEntry entry : invoices) {
+                json.writeStartObject();
+                for (ExportColumn column : options.columns()) {
+                    field(json, options.keys().get(column), column, column.valueOf(entry));
+                }
+                json.writeEndObject();
+            }
+            json.writeEndArray();
+            json.writeEndObject();
+        }
+    }
+
+    private static void field(JsonGenerator json, String key, ExportColumn column, Object value) {
+        switch (column.kind()) {
+            case NUMBER -> number(json, key, (BigDecimal) value);
+            case DATE -> date(json, key, (LocalDate) value);
+            case TEXT -> json.writeStringProperty(key, (String) value);
         }
     }
 

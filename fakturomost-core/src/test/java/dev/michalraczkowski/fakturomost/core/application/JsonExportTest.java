@@ -3,6 +3,7 @@ package dev.michalraczkowski.fakturomost.core.application;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -144,7 +145,70 @@ class JsonExportTest {
         assertTrue(out.size() > 0);
     }
 
+    // --- Chosen fields (JsonOptions) -------------------------------------------------------------
+
+    @Test
+    void chosenFieldsAreWrittenFlatInOrderUnderTheChosenKeys() throws IOException {
+        JsonOptions options = JsonOptions.of(ExportColumn.ISSUE_DATE, ExportColumn.INVOICE_NUMBER,
+                        ExportColumn.GROSS_TOTAL, ExportColumn.SALE_DATE)
+                .withKey(ExportColumn.ISSUE_DATE, "Data21")
+                .withKey(ExportColumn.GROSS_TOTAL, "Kwota brutto");
+
+        Map<String, Object> root = read(json(List.of(data.vat(), data.correction()), options));
+
+        assertEquals("fakturomost-invoice-fields", root.get("format"));
+        assertEquals(new BigDecimal("1"), root.get("formatVersion"));
+        Map<String, Object> first = map(list(root, "invoices").get(0));
+        assertEquals(List.of("Data21", "invoice_number", "Kwota brutto", "sale_date"), List.copyOf(first.keySet()));
+        assertEquals("2026-10-20", first.get("Data21"), "renamed key, same date value");
+        assertEquals(new BigDecimal("1440.53"), first.get("Kwota brutto"), "amounts stay JSON numbers");
+        Map<String, Object> correction = map(list(root, "invoices").get(1));
+        assertEquals(new BigDecimal("-123.00"), correction.get("Kwota brutto"));
+        assertTrue(correction.containsKey("sale_date"), "not stated → explicit null, same keys everywhere");
+        assertNull(correction.get("sale_date"));
+    }
+
+    @Test
+    void chosenFieldsKeepTextExactlyWithoutCsvEscaping() throws IOException {
+        InvoiceEntry entry = ExportTestData.crafted("=1+2", "\"Quote\" & <tag>", "Nabywca\nz nową linią",
+                List.of(), new BigDecimal("1.00"));
+        JsonOptions options = JsonOptions.of(ExportColumn.INVOICE_NUMBER, ExportColumn.SELLER_NAME,
+                ExportColumn.BUYER_NAME);
+
+        Map<String, Object> invoice = map(list(read(json(List.of(entry), options)), "invoices").get(0));
+
+        assertEquals("=1+2", invoice.get("invoice_number"), "no apostrophe: JSON is not a spreadsheet");
+        assertEquals("\"Quote\" & <tag>", invoice.get("seller_name"));
+        assertEquals("Nabywca\nz nową linią", invoice.get("buyer_name"));
+    }
+
+    @Test
+    void jsonOptionsRejectAmbiguousLayouts() {
+        assertThrows(IllegalArgumentException.class, () -> JsonOptions.of(List.of()));
+        assertThrows(IllegalArgumentException.class,
+                () -> JsonOptions.of(ExportColumn.TYPE, ExportColumn.TYPE));
+        assertThrows(IllegalArgumentException.class,
+                () -> JsonOptions.of(ExportColumn.TYPE, ExportColumn.CURRENCY).withKey(ExportColumn.CURRENCY, "type"));
+        assertThrows(IllegalArgumentException.class, () -> JsonOptions.defaults().withKey(ExportColumn.TYPE, " "));
+        assertThrows(IllegalArgumentException.class,
+                () -> JsonOptions.of(ExportColumn.TYPE).withKey(ExportColumn.CURRENCY, "waluta"));
+    }
+
+    @Test
+    void defaultFieldsAreTheDefaultColumnsWithEnglishKeys() {
+        JsonOptions options = JsonOptions.defaults();
+
+        assertEquals(ExportColumn.defaults(), options.columns());
+        assertEquals("issue_date", options.keys().get(ExportColumn.ISSUE_DATE));
+    }
+
     // --- Helpers ---------------------------------------------------------------------------------
+
+    private byte[] json(List<InvoiceEntry> invoices, JsonOptions options) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        exports.writeJson(invoices, options, out);
+        return out.toByteArray();
+    }
 
     private byte[] json(List<InvoiceEntry> invoices) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();

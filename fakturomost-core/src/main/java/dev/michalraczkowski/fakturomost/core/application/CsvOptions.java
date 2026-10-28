@@ -29,8 +29,8 @@ public record CsvOptions(
         boolean byteOrderMark,
         String lineEnding,
         boolean headerRow,
-        List<CsvColumn> columns,
-        Map<CsvColumn, String> headers) {
+        List<ExportColumn> columns,
+        Map<ExportColumn, String> headers) {
 
     public static final String CRLF = "\r\n";
     public static final String LF = "\n";
@@ -54,8 +54,8 @@ public record CsvOptions(
         if (new HashSet<>(columns).size() != columns.size()) {
             throw new IllegalArgumentException("A column may appear only once");
         }
-        Map<CsvColumn, String> complete = new EnumMap<>(CsvColumn.class);
-        for (CsvColumn column : CsvColumn.values()) {
+        Map<ExportColumn, String> complete = new EnumMap<>(ExportColumn.class);
+        for (ExportColumn column : ExportColumn.values()) {
             String header = headers.get(column);
             if (header == null || header.isBlank()) {
                 throw new IllegalArgumentException("Missing header text for " + column);
@@ -67,15 +67,15 @@ public record CsvOptions(
 
     /**
      * Default. Opens correctly by double-click in Excel with Polish regional settings: {@code ;},
-     * decimal comma, UTF-8 BOM, CRLF, Polish headers, all columns.
+     * decimal comma, UTF-8 BOM, CRLF, Polish headers, the {@linkplain ExportColumn#defaults() default columns}.
      */
     public static CsvOptions excelPl() {
-        return new CsvOptions(';', ',', true, CRLF, true, List.of(CsvColumn.values()), polishHeaders());
+        return new CsvOptions(';', ',', true, CRLF, true, ExportColumn.defaults(), polishHeaders());
     }
 
-    /** RFC 4180 style for other software: {@code ,}, decimal point, no BOM, CRLF, Polish headers. */
+    /** RFC 4180 style for other software: {@code ,}, decimal point, no BOM, CRLF, Polish headers, default columns. */
     public static CsvOptions standard() {
-        return new CsvOptions(',', '.', false, CRLF, true, List.of(CsvColumn.values()), polishHeaders());
+        return new CsvOptions(',', '.', false, CRLF, true, ExportColumn.defaults(), polishHeaders());
     }
 
     public CsvOptions withSeparator(char value) {
@@ -98,19 +98,26 @@ public record CsvOptions(
         return new CsvOptions(separator, decimalSeparator, byteOrderMark, lineEnding, value, columns, headers);
     }
 
-    public CsvOptions withColumns(List<CsvColumn> value) {
+    public CsvOptions withColumns(List<ExportColumn> value) {
         return new CsvOptions(separator, decimalSeparator, byteOrderMark, lineEnding, headerRow, value, headers);
     }
 
-    public CsvOptions withColumns(CsvColumn... value) {
+    public CsvOptions withColumns(ExportColumn... value) {
         return withColumns(Arrays.asList(value));
     }
 
     /** Replaces the header text of one column; the others keep theirs. */
-    public CsvOptions withHeader(CsvColumn column, String text) {
+    public CsvOptions withHeader(ExportColumn column, String text) {
         Objects.requireNonNull(column, "column");
-        Map<CsvColumn, String> changed = new EnumMap<>(headers);
+        Map<ExportColumn, String> changed = new EnumMap<>(headers);
         changed.put(column, text);
+        return new CsvOptions(separator, decimalSeparator, byteOrderMark, lineEnding, headerRow, columns, changed);
+    }
+
+    /** Replaces the header text of the given columns; columns not in {@code texts} keep theirs. */
+    public CsvOptions withHeaders(Map<ExportColumn, String> texts) {
+        Map<ExportColumn, String> changed = new EnumMap<>(headers);
+        changed.putAll(texts);
         return new CsvOptions(separator, decimalSeparator, byteOrderMark, lineEnding, headerRow, columns, changed);
     }
 
@@ -121,16 +128,16 @@ public record CsvOptions(
 
     /** All headers to the English, machine-friendly names (same keys as the JSON export). */
     public CsvOptions withEnglishHeaders() {
-        Map<CsvColumn, String> english = new EnumMap<>(CsvColumn.class);
-        for (CsvColumn column : CsvColumn.values()) {
+        Map<ExportColumn, String> english = new EnumMap<>(ExportColumn.class);
+        for (ExportColumn column : ExportColumn.values()) {
             english.put(column, column.englishHeader());
         }
         return new CsvOptions(separator, decimalSeparator, byteOrderMark, lineEnding, headerRow, columns, english);
     }
 
-    private static Map<CsvColumn, String> polishHeaders() {
-        Map<CsvColumn, String> polish = new EnumMap<>(CsvColumn.class);
-        for (CsvColumn column : CsvColumn.values()) {
+    private static Map<ExportColumn, String> polishHeaders() {
+        Map<ExportColumn, String> polish = new EnumMap<>(ExportColumn.class);
+        for (ExportColumn column : ExportColumn.values()) {
             polish.put(column, column.polishHeader());
         }
         return polish;

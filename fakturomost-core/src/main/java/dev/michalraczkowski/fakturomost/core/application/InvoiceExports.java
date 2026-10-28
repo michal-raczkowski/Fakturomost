@@ -23,7 +23,8 @@ import java.util.zip.ZipOutputStream;
 import tools.jackson.core.exc.JacksonIOException;
 
 /**
- * Use case: export invoices as CSV or JSON, and documents as their original, unchanged XML.
+ * Use case: export invoices as CSV or JSON (complete structure, or chosen fields under chosen names),
+ * and documents as their original, unchanged XML.
  *
  * <p>Exported files are <strong>not encrypted</strong>; front ends must say so.
  *
@@ -63,6 +64,24 @@ public final class InvoiceExports {
 
     public void exportJson(List<InvoiceEntry> invoices, Path file, boolean overwrite) throws IOException {
         writeFile(file, overwrite, out -> writeJson(invoices, out));
+    }
+
+    /**
+     * Only the chosen fields, one flat object per invoice, under the chosen keys (see
+     * {@link JsonOptions}). The stream is flushed, not closed.
+     */
+    public void writeJson(List<InvoiceEntry> invoices, JsonOptions options, OutputStream out) throws IOException {
+        Objects.requireNonNull(options, "options");
+        try {
+            JsonInvoiceWriter.write(List.copyOf(invoices), options, out);
+        } catch (JacksonIOException e) {
+            throw e.getCause();
+        }
+    }
+
+    public void exportJson(List<InvoiceEntry> invoices, JsonOptions options, Path file, boolean overwrite)
+            throws IOException {
+        writeFile(file, overwrite, out -> writeJson(invoices, options, out));
     }
 
     // --- Original XML ----------------------------------------------------------------------------

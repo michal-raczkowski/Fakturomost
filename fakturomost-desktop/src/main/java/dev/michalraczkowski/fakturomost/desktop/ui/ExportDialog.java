@@ -5,6 +5,7 @@ import dev.michalraczkowski.fakturomost.desktop.ui.model.ExportScope;
 import java.util.List;
 import java.util.Optional;
 import javafx.geometry.Insets;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -16,13 +17,18 @@ import javafx.stage.Window;
 
 /**
  * Step 1 of an export: what to export and in which format, with the "not encrypted" notice in plain
- * sight. Step 2, choosing the file or folder, is the platform's own dialog (see {@code MainWindow}).
+ * sight. For CSV and chosen-fields JSON, {@link ExportColumnsDialog} follows (columns, names, CSV
+ * settings); the last step, choosing the file or folder, is the platform's own dialog (see
+ * {@code MainWindow}).
  */
 final class ExportDialog {
 
     /** The user's answer. */
     record Choice(ExportFormat format, ExportScope scope) {
     }
+
+    private static final String CHOOSE_LOCATION = "Choose location…";
+    private static final String NEXT = "Next: columns…";
 
     private ExportDialog() {
     }
@@ -33,14 +39,17 @@ final class ExportDialog {
      * @param selected number of selected rows (0 disables that choice)
      * @param shown    number of rows the table shows
      * @param filtered whether the filters hide some invoices
+     * @param preselectedScope the scope to show selected (after "Back"), or {@code null} for the default
      */
     static Optional<Choice> chooseForInvoices(Window owner, int selected, int shown, boolean filtered,
-                                              ExportFormat preselected) {
+                                              ExportFormat preselected, ExportScope preselectedScope) {
         ToggleGroup scopes = new ToggleGroup();
         RadioButton selectedButton = radio(ExportScope.SELECTED.label(selected, filtered), ExportScope.SELECTED, scopes);
         RadioButton shownButton = radio(ExportScope.ALL_SHOWN.label(shown, filtered), ExportScope.ALL_SHOWN, scopes);
         selectedButton.setDisable(selected == 0);
-        (ExportScope.defaultFor(selected) == ExportScope.SELECTED ? selectedButton : shownButton).setSelected(true);
+        ExportScope scope = preselectedScope == null || (preselectedScope == ExportScope.SELECTED && selected == 0)
+                ? ExportScope.defaultFor(selected) : preselectedScope;
+        (scope == ExportScope.SELECTED ? selectedButton : shownButton).setSelected(true);
 
         return show(owner, "Export invoices", "Export", List.of(ExportFormat.values()), preselected,
                 new VBox(6, sectionLabel("Invoices"), selectedButton, shownButton), scopes);
@@ -83,8 +92,14 @@ final class ExportDialog {
         content.setPadding(new Insets(6, 0, 0, 0));
         dialog.getDialogPane().setContent(content);
 
-        ButtonType next = new ButtonType("Choose location…", ButtonBar.ButtonData.OK_DONE);
+        ButtonType next = new ButtonType(CHOOSE_LOCATION, ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(next, ButtonType.CANCEL);
+        // Formats with columns go on to the columns step first; the button says so.
+        Button nextButton = (Button) dialog.getDialogPane().lookupButton(next);
+        Runnable label = () -> nextButton.setText(formatGroup.getSelectedToggle() != null
+                && ((ExportFormat) formatGroup.getSelectedToggle().getUserData()).hasColumns() ? NEXT : CHOOSE_LOCATION);
+        formatGroup.selectedToggleProperty().addListener((o, a, b) -> label.run());
+        label.run();
         dialog.setResultConverter(button -> button == next && formatGroup.getSelectedToggle() != null
                 ? new Choice((ExportFormat) formatGroup.getSelectedToggle().getUserData(),
                         scopes == null ? null : (ExportScope) scopes.getSelectedToggle().getUserData())
