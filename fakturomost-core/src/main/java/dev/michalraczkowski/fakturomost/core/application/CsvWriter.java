@@ -43,7 +43,7 @@ final class CsvWriter {
         writer.write(options.lineEnding());
     }
 
-    private static String cell(CsvColumn column, Object value, CsvOptions options) {
+    private static String cell(ExportColumn column, Object value, CsvOptions options) {
         if (value == null) {
             return "";
         }

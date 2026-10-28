@@ -630,3 +630,89 @@
 .combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected {
     -fx-background-color: -fk-tint;
 }
+
+/* ---------------------------------------------------------------------------------------------- */
+/* Export columns dialog                                                                          */
+/* ---------------------------------------------------------------------------------------------- */
+
+.field-list {
+    -fx-background-color: -fk-line, -fk-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 6, 5;
+    -fx-padding: 1;
+}
+
+.field-list:focused {
+    -fx-background-color: -fk-accent, -fk-surface;
+    -fx-background-insets: 0, 1.5;
+}
+
+.field-list .list-cell {
+    -fx-padding: 5 9 5 9;
+    -fx-background-color: transparent;
+    -fx-text-fill: -fk-ink;
+}
+
+.field-list .list-cell:hover {
+    -fx-background-color: -fk-hover;
+}
+
+.field-list .list-cell:selected {
+    -fx-background-color: -fk-tint;
+}
+
+.field-list .list-cell:empty {
+    -fx-background-color: transparent;
+}
+
+.field-kind {
+    -fx-text-fill: -fk-muted;
+    -fx-font-size: 11px;
+}
+
+.column-editor .table-cell .text-field {
+    -fx-padding: 2 6 2 6;
+}
+
+.column-editor .table-row-cell {
+    -fx-cell-size: 34px;
+}
+
+.check-box {
+    -fx-text-fill: -fk-ink;
+}
+
+.check-box > .box {
+    -fx-background-color: -fk-line, -fk-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 4, 3;
+    -fx-padding: 3;
+}
+
+.check-box:selected > .box {
+    -fx-background-color: -fk-accent;
+    -fx-background-insets: 0;
+}
+
+.check-box:selected > .box > .mark {
+    -fx-background-color: -fk-surface;
+}
+
+.check-box:focused > .box {
+    -fx-background-color: -fk-accent, -fk-surface;
+    -fx-background-insets: 0, 1.5;
+}
+
+.check-box:selected:focused > .box {
+    -fx-background-color: -fk-accent-pressed, -fk-accent;
+    -fx-background-insets: 0, 1.5;
+}
+
+.export-preview {
+    -fx-font-size: 12px;
+}
+
+.export-problems {
+    -fx-text-fill: -fk-problem-ink;
+    -fx-font-size: 12px;
+}

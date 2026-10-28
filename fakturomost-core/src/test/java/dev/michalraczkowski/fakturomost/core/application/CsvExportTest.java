@@ -91,13 +91,13 @@ class CsvExportTest {
         assertThrows(IllegalArgumentException.class, () -> CsvOptions.standard().withLineEnding("\r"));
         assertThrows(IllegalArgumentException.class, () -> CsvOptions.standard().withColumns(List.of()));
         assertThrows(IllegalArgumentException.class,
-                () -> CsvOptions.standard().withColumns(CsvColumn.GROSS_TOTAL, CsvColumn.GROSS_TOTAL));
-        assertThrows(IllegalArgumentException.class, () -> CsvOptions.standard().withHeader(CsvColumn.TYPE, " "));
+                () -> CsvOptions.standard().withColumns(ExportColumn.GROSS_TOTAL, ExportColumn.GROSS_TOTAL));
+        assertThrows(IllegalArgumentException.class, () -> CsvOptions.standard().withHeader(ExportColumn.TYPE, " "));
     }
 
     @Test
     void writesOnlyTheChosenColumnsInTheChosenOrder() throws IOException {
-        CsvOptions options = CsvOptions.excelPl().withColumns(CsvColumn.GROSS_TOTAL, CsvColumn.INVOICE_NUMBER);
+        CsvOptions options = CsvOptions.excelPl().withColumns(ExportColumn.GROSS_TOTAL, ExportColumn.INVOICE_NUMBER);
 
         assertEquals(List.of("Brutto;Numer faktury", "1440,53;FV/2026/10/0042"),
                 lines(csv(List.of(data.vat()), options), 3, "\r\n"));
@@ -106,8 +106,8 @@ class CsvExportTest {
     @Test
     void headersCanBeChangedOneByOneOrAllToEnglish() throws IOException {
         CsvOptions custom = CsvOptions.excelPl()
-                .withColumns(CsvColumn.INVOICE_NUMBER, CsvColumn.GROSS_TOTAL)
-                .withHeader(CsvColumn.INVOICE_NUMBER, "Nr dokumentu");
+                .withColumns(ExportColumn.INVOICE_NUMBER, ExportColumn.GROSS_TOTAL)
+                .withHeader(ExportColumn.INVOICE_NUMBER, "Nr dokumentu");
         CsvOptions english = custom.withEnglishHeaders();
 
         assertEquals("Nr dokumentu;Brutto", lines(csv(List.of(), custom), 3, "\r\n").get(0));
@@ -118,7 +118,7 @@ class CsvExportTest {
     @Test
     void canOmitTheHeaderRowAndUseLf() throws IOException {
         CsvOptions options = CsvOptions.standard().withHeaderRow(false).withLineEnding(CsvOptions.LF)
-                .withColumns(CsvColumn.INVOICE_NUMBER);
+                .withColumns(ExportColumn.INVOICE_NUMBER);
 
         assertEquals("FV/2026/10/0042\nFK/2026/10/0007\n",
                 new String(csv(List.of(data.vat(), data.correction()), options), StandardCharsets.UTF_8));
@@ -131,8 +131,8 @@ class CsvExportTest {
         InvoiceEntry exemptOnly = ExportTestData.crafted("Z/1", "S", null,
                 List.of(new VatBreakdown(VatBucket.EXEMPT, new BigDecimal("50"), null, null)), new BigDecimal("50"));
         InvoiceEntry noBuckets = ExportTestData.crafted("Z/2", "S", null, List.of(), BigDecimal.ZERO);
-        CsvOptions options = CsvOptions.excelPl().withColumns(CsvColumn.KSEF_NUMBER, CsvColumn.SALE_DATE,
-                CsvColumn.BUYER_TAX_ID, CsvColumn.BUYER_NAME, CsvColumn.NET_TOTAL, CsvColumn.VAT_TOTAL);
+        CsvOptions options = CsvOptions.excelPl().withColumns(ExportColumn.KSEF_NUMBER, ExportColumn.SALE_DATE,
+                ExportColumn.BUYER_TAX_ID, ExportColumn.BUYER_NAME, ExportColumn.NET_TOTAL, ExportColumn.VAT_TOTAL);
 
         List<String> lines = lines(csv(List.of(exemptOnly, noBuckets), options), 3, "\r\n");
 
@@ -143,7 +143,7 @@ class CsvExportTest {
     @Test
     void writesNumbersInPlainNotationWithTheirScale() throws IOException {
         InvoiceEntry entry = ExportTestData.crafted("N/1", "S", "B", List.of(), new BigDecimal("1E+3"));
-        CsvOptions options = CsvOptions.excelPl().withColumns(CsvColumn.GROSS_TOTAL).withHeaderRow(false);
+        CsvOptions options = CsvOptions.excelPl().withColumns(ExportColumn.GROSS_TOTAL).withHeaderRow(false);
 
         assertEquals("1000\r\n", text(csv(List.of(entry), options), 3));
     }
@@ -155,7 +155,7 @@ class CsvExportTest {
             "\tTAB", "\rCR"})
     void neutralisesSpreadsheetFormulasInTextCells(String malicious) throws IOException {
         InvoiceEntry entry = ExportTestData.crafted(malicious, malicious, malicious, List.of(), BigDecimal.ONE);
-        CsvOptions options = CsvOptions.excelPl().withColumns(CsvColumn.INVOICE_NUMBER, CsvColumn.SELLER_NAME)
+        CsvOptions options = CsvOptions.excelPl().withColumns(ExportColumn.INVOICE_NUMBER, ExportColumn.SELLER_NAME)
                 .withHeaderRow(false);
 
         List<List<String>> rows = parse(text(csv(List.of(entry), options), 3), ';');
@@ -165,7 +165,7 @@ class CsvExportTest {
 
     @Test
     void neutralisesFormulasInCustomHeadersToo() throws IOException {
-        CsvOptions options = CsvOptions.excelPl().withColumns(CsvColumn.TYPE).withHeader(CsvColumn.TYPE, "=1+1");
+        CsvOptions options = CsvOptions.excelPl().withColumns(ExportColumn.TYPE).withHeader(ExportColumn.TYPE, "=1+1");
 
         assertEquals("'=1+1", lines(csv(List.of(), options), 3, "\r\n").get(0));
     }
@@ -175,7 +175,7 @@ class CsvExportTest {
         String tricky = "Firma \"Ala; Ola\", s.c.\r\nul. Długa 1";
         InvoiceEntry entry = ExportTestData.crafted("Q/1", tricky, tricky, List.of(), BigDecimal.TEN);
         CsvOptions options = CsvOptions.standard()
-                .withColumns(CsvColumn.INVOICE_NUMBER, CsvColumn.SELLER_NAME, CsvColumn.GROSS_TOTAL);
+                .withColumns(ExportColumn.INVOICE_NUMBER, ExportColumn.SELLER_NAME, ExportColumn.GROSS_TOTAL);
 
         for (CsvOptions variant : List.of(options, options.withSeparator(';'), options.withSeparator('\t'))) {
             List<List<String>> rows = parse(text(csv(List.of(entry), variant), 0), variant.separator());

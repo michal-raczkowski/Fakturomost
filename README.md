@@ -63,6 +63,7 @@ What works today (see the [roadmap](#roadmap) for what's next):
 - 📊 **CSV for Excel (Polish settings)**: `;` separator, decimal comma, UTF-8 BOM so Polish letters display correctly
 - 🧮 **CSV, standard** (RFC 4180 style) and **JSON** (versioned, documented format) for other software and scripts
 - ☑️ Export the **selected** invoices or **all invoices the filters show**
+- 🧩 **Choose your columns** (desktop app): pick which invoice fields go into the file, put them in any order and **rename the column headers** (e.g. `Data21` for the issue date) to match the import template of your other software — with a live preview of the file. Works for CSV and for JSON with chosen fields; the CSV separator, decimal sign, BOM, header row and line endings can be changed too. Remembered until the app closes
 - 🗂️ **Original XML**, byte-for-byte unchanged, into one **ZIP** or a **folder** (files named by KSeF number) — also for documents in formats Fakturomost cannot read, such as FA(2)
 - 🛡️ **CSV formula-injection protection**, and Fakturomost never overwrites a file without asking
 
@@ -182,6 +183,9 @@ Numer KSeF,Numer faktury,Rodzaj faktury,Data wystawienia,Data sprzedaży,NIP spr
 <sub>The <code>standard</code> preset, shortened. The default <code>excel-pl</code> preset uses <code>;</code> and decimal commas.</sub>
 
 - **Excel (Polish settings)** opens the default preset correctly with a double-click.
+- **Your own layout** (desktop app, *Export… → Next: columns*): add or remove columns, reorder them and give each its own name. A renamed column still holds the same value — only the header text changes. Names must be unique (ignoring case), without line breaks, at most 100 characters. Fields available besides the ones above: seller/buyer country and address lines, buyer tax ID kind (`NIP`, `EU_VAT`, `OTHER`, `NONE`), **net and VAT per rate** (23%, 8%, 5%), net at 0%, exempt (`zw`) and reverse charge, VAT in PLN (foreign-currency invoices), correction reason, corrected invoice numbers and their KSeF numbers.
+
+<img src="docs/images/screenshot-export-columns.png" width="760" alt="Export columns dialog: available invoice fields on the left, exported columns on the right with editable names (the issue date renamed to Data21), CSV separator and decimal sign settings, and a live preview of the CSV file">
 - Net and VAT are the sums of the tax buckets **stated on the invoice**; amounts are written as numbers (negative values on corrections stay numbers).
 - Text cells starting with `=`, `+`, `-`, `@`, tab or carriage return are prefixed with `'` (CSV/formula-injection protection); numbers are never altered.
 
@@ -214,6 +218,20 @@ A versioned document with every field always present (`null` when absent) and de
 }
 ```
 <sub>Shortened: the real output also contains the document ID, sale date, buyer, addresses and line items.</sub>
+
+**JSON with chosen fields** (desktop: *JSON, chosen fields*) writes one flat object per invoice with only the columns you picked, in your order, under your names (English `snake_case` keys by default). Amounts stay JSON numbers, dates are `yyyy-MM-dd` strings and values the invoice does not state are `null`:
+
+```json
+{
+  "format" : "fakturomost-invoice-fields",
+  "formatVersion" : 1,
+  "invoices" : [ {
+    "Data21" : "2026-10-02",
+    "invoice_number" : "FV/2026/10/0001",
+    "gross_total" : 5460.00
+  } ]
+}
+```
 
 ### Original XML
 
@@ -333,6 +351,9 @@ KSeF **FA(3)** (schema `1-0E`). Other formats such as FA(2) or FA_RR are reporte
 **Where does the KSeF number come from?**<br>
 It is not inside the invoice XML. KSeF names downloaded files after it, so Fakturomost reads it from the file name and accepts it only if the format, date, checksum and seller NIP all match.
 
+**Can I make the CSV match the import template of my other program?**<br>
+Yes, in the desktop app: *Export…* → choose a CSV format → *Next: columns*. Pick the fields, order them and type the header names your program expects; the preview shows the file before it is written. The layout is remembered until you close the app (saved layouts will come with local storage).
+
 **Does it replace accounting software?**<br>
 No. It is a bridge: it gets invoices out of KSeF files into formats your existing software can read.
 
@@ -342,7 +363,7 @@ Issues and suggestions are welcome — especially real-world feedback on KSeF do
 
 ## Po polsku
 
-**Fakturomost** to darmowa aplikacja open source (desktop + wiersz poleceń) do **importu, przeglądania, wyszukiwania i eksportu faktur ustrukturyzowanych z KSeF** w formacie **FA(3)**. Wczytuje pliki XML, **paczki ZIP pobrane z KSeF** i całe foldery, sprawdza je z oficjalnym schematem XSD (offline), wykrywa duplikaty i odczytuje numer KSeF z nazwy pliku. Wybrane faktury można wyeksportować do **CSV dla Excela (polskie ustawienia: średnik, przecinek dziesiętny)**, **JSON** lub jako **niezmienione oryginalne pliki XML** — np. żeby wczytać je do starszego programu magazynowego lub księgowego, który nie obsługuje KSeF.
+**Fakturomost** to darmowa aplikacja open source (desktop + wiersz poleceń) do **importu, przeglądania, wyszukiwania i eksportu faktur ustrukturyzowanych z KSeF** w formacie **FA(3)**. Wczytuje pliki XML, **paczki ZIP pobrane z KSeF** i całe foldery, sprawdza je z oficjalnym schematem XSD (offline), wykrywa duplikaty i odczytuje numer KSeF z nazwy pliku. Wybrane faktury można wyeksportować do **CSV dla Excela (polskie ustawienia: średnik, przecinek dziesiętny)**, **JSON** lub jako **niezmienione oryginalne pliki XML**; w aplikacji desktop można **wybrać kolumny, ich kolejność i własne nazwy nagłówków** (np. `Data21` dla daty wystawienia) — np. żeby wczytać je do starszego programu magazynowego lub księgowego, który nie obsługuje KSeF.
 
 Wszystko działa **lokalnie na Twoim komputerze** — bez serwera, bez konta i bez wysyłania danych. Projekt jest **eksperymentalny**, niezależny i **niepowiązany z Ministerstwem Finansów**; obecna wersja nie jest przeznaczona do prawdziwych danych finansowych (dane są trzymane w pamięci). Do testów służą dołączone [fikcyjne dane demonstracyjne](demo-data/README.md).
 

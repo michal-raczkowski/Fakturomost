@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import dev.michalraczkowski.fakturomost.core.application.CsvOptions;
 import dev.michalraczkowski.fakturomost.core.application.InvoiceEntry;
 import dev.michalraczkowski.fakturomost.core.application.InvoiceQuery;
+import dev.michalraczkowski.fakturomost.core.application.JsonOptions;
 import dev.michalraczkowski.fakturomost.desktop.DemoData;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipFile;
 import org.junit.jupiter.api.Test;
@@ -88,6 +90,26 @@ class ExportFormatTest {
     }
 
     @Test
+    void chosenFieldsJsonDefaultsToTheDefaultColumnsWithEnglishKeys() throws IOException {
+        Path json = dir.resolve("fields.json");
+
+        ExportFormat.JSON_FIELDS.export(services.exports(), selection, json, false);
+
+        ByteArrayOutputStream expected = new ByteArrayOutputStream();
+        services.exports().writeJson(selection, JsonOptions.defaults(), expected);
+        assertThat(Files.readAllBytes(json)).isEqualTo(expected.toByteArray());
+    }
+
+    @Test
+    void onlyCsvAndChosenFieldsJsonHaveColumns() {
+        assertThat(Arrays.stream(ExportFormat.values()).filter(ExportFormat::hasColumns))
+                .containsExactly(ExportFormat.CSV_EXCEL_PL, ExportFormat.CSV_STANDARD, ExportFormat.JSON_FIELDS);
+        assertThat(ExportFormat.JSON_FIELDS.defaultNames()).isEqualTo(ColumnLayout.Names.ENGLISH);
+        assertThat(ExportFormat.CSV_STANDARD.defaultNames()).isEqualTo(ColumnLayout.Names.POLISH);
+        assertThatThrownBy(ExportFormat.JSON::csvPreset).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     void originalXmlGoesIntoOneZipOrOneFilePerInvoice() throws IOException {
         Path zip = dir.resolve("x.zip");
         Path folder = dir.resolve("folder");
@@ -138,7 +160,8 @@ class ExportFormatTest {
         Path file = dir.resolve("a.csv");
         assertThat(ExportFormat.CSV_EXCEL_PL.overwriteQuestion(file)).isEqualTo(file + " already exists. Replace it?");
         assertThat(ExportFormat.XML_FOLDER.overwriteQuestion(dir)).contains("Other files in the folder are not touched");
-        assertThat(ExportFormat.JSON.doneMessage(1, file)).isEqualTo("Exported 1 invoice to " + file + " (JSON).");
+        assertThat(ExportFormat.JSON.doneMessage(1, file))
+                .isEqualTo("Exported 1 invoice to " + file + " (JSON, complete invoices (line items, VAT buckets)).");
         assertThat(ExportFormat.NOT_ENCRYPTED_NOTICE).contains("NOT encrypted");
     }
 
