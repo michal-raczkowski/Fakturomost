@@ -1,5 +1,6 @@
 # Builds portable desktop apps with a bundled Java runtime (jpackage), one per OS:
-#   Fakturomost-<version>-windows-x64.zip   and   Fakturomost-<version>-linux-x64.tar.gz
+#   Fakturomost-<version>-windows-x64.zip,
+#   Fakturomost-<version>-linux-x64.AppImage   and   Fakturomost-<version>-linux-x64.tar.gz
 #
 # Run it by hand (Actions → Package → Run workflow) and download the files from the run's
 # "Artifacts" section, or push a tag like v0.1.0 to also publish them as a GitHub pre-release.
@@ -39,15 +40,27 @@ jobs:
       - name: Build and test
         run: ./mvnw -B -ntp -pl fakturomost-desktop -am verify
 
+      # --no-build: the step above just built (and tested) these jars; the script still checks
+      # that the packaged stylesheet matches src/ and stages the jars into a fresh folder.
       - name: Package with jpackage
         shell: bash
-        run: bash packaging/package.sh
+        run: bash packaging/package.sh --no-build
 
-      # archive: false uploads the .zip / .tar.gz as it is (no zip around it, Linux permissions kept).
-      - name: Upload ${{ matrix.platform }}
+      # archive: false uploads the file as it is (no zip around it, Linux permissions kept) —
+      # and only one file per step, hence a separate step for the Linux AppImage.
+      - name: Upload ${{ matrix.platform }} archive
         uses: actions/upload-artifact@v7
         with:
-          path: fakturomost-desktop/target/dist/Fakturomost-*-${{ matrix.platform }}.*
+          path: fakturomost-desktop/target/dist/Fakturomost-*-${{ matrix.platform }}.${{ runner.os == 'Windows' && 'zip' || 'tar.gz' }}
+          archive: false
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload ${{ matrix.platform }} AppImage
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          path: fakturomost-desktop/target/dist/Fakturomost-*-${{ matrix.platform }}.AppImage
           archive: false
           if-no-files-found: error
           retention-days: 30
@@ -74,4 +87,4 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --prerelease \
             --title "Fakturomost $GITHUB_REF_NAME (experimental)" \
-            --notes "Experimental test build — synthetic demo data or KSeF test-environment invoices only; imported invoices are kept in memory. Windows: unzip and run Fakturomost.exe (unsigned: SmartScreen → More info → Run anyway). Linux: extract and run Fakturomost/bin/Fakturomost. Java is included. See README.txt inside the archive."
+            --notes "Experimental test build — synthetic demo data or KSeF test-environment invoices only; imported invoices are kept in memory. Windows: unzip and run Fakturomost.exe (unsigned: SmartScreen → More info → Run anyway). Linux: chmod +x the .AppImage and run it, or extract the .tar.gz and run Fakturomost/bin/Fakturomost (it includes the demo-data folder). Java is included. See README.txt inside the archive."

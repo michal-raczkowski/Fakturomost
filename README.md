@@ -91,9 +91,12 @@ Test builds for **Windows** and **Linux** are published on the [Releases](https:
 | System | File | How to start |
 |---|---|---|
 | Windows 10/11 (x64) | `Fakturomost-<version>-windows-x64.zip` | Unzip, run `Fakturomost.exe` |
-| Linux (x64, GTK 3 desktop) | `Fakturomost-<version>-linux-x64.tar.gz` | `tar xzf …`, run `Fakturomost/bin/Fakturomost` |
+| Linux (x64, GTK 3 desktop) | `Fakturomost-<version>-linux-x64.AppImage` | `chmod +x Fakturomost-*.AppImage`, then double-click it or run `./Fakturomost-*.AppImage` |
+| Linux, as a folder | `Fakturomost-<version>-linux-x64.tar.gz` | `tar xzf …`, run `Fakturomost/bin/Fakturomost` |
 
-The demo data is included: click **Import folder…** and choose the `demo-data` folder next to the program.
+The demo data is included next to the program in the Windows zip and the Linux `.tar.gz`: click **Import folder…** and choose the `demo-data` folder. With the AppImage, use the [`demo-data`](demo-data/README.md) folder of this repository (or the one from the `.tar.gz`).
+
+The AppImage needs FUSE, which common desktop distributions have. If it reports that FUSE is missing, run it with `--appimage-extract-and-run`.
 
 > [!NOTE]
 > The builds are not code-signed yet, so Windows SmartScreen may show "Windows protected your PC" — click **More info → Run anyway**. `Fakturomost-console.exe` starts the same app with a console window that shows error messages. A proper installer is planned (see [roadmap](#roadmap)).
@@ -118,7 +121,7 @@ cd fakturomost
 
 Or run `dev.michalraczkowski.fakturomost.desktop.Launcher` from your IDE. Then click **Import folder…** and choose the [`demo-data`](demo-data/README.md) folder of this repository.
 
-To build the portable app yourself: `bash packaging/package.sh` after the Maven package step (see the script header). CI does the same for Windows and Linux in [`.github/workflows/package.yml`](.github/workflows/package.yml).
+To build the portable app yourself: `bash packaging/package.sh` — it does a clean build of the desktop app first, then packages it (Windows: `.zip`; Linux: `.AppImage` and `.tar.gz`). See the script header for options. CI does the same for Windows and Linux in [`.github/workflows/package.yml`](.github/workflows/package.yml).
 
 ## Command-line tool
 
