@@ -2,17 +2,22 @@
  * Fakturomost desktop theme, on top of JavaFX's Modena.
  *
  * Goal: identical on Windows, macOS and Linux (bundled font, every size and colour pinned here),
- * calm and flat. One accent — river teal — used for the primary action, focus and selection.
- * No government/MF styling (master prompt §14).
+ * calm and flat. Colours follow the brand refresh (Fakturomost_Design_Spec.md §3): a palette
+ * borrowed from the KSeF site so the app sits comfortably next to it. Colours only — no eagle,
+ * no KSeF wordmark, no MF logo, and nothing that suggests an official tool (master prompt §14).
+ * One accent — navy — used for the primary action, focus and selection.
  *
  * Tokens (looked-up colours, usable anywhere below):
- *   -fk-ground  #F4F6F7  window background
- *   -fk-surface #FFFFFF  tables, details, dialogs
- *   -fk-ink     #1D2733  text
- *   -fk-muted   #5E6875  secondary text
- *   -fk-line    #DCE1E6  hairlines and borders
- *   -fk-accent  #0E6B76  primary action, focus, selected radio
- *   -fk-tint    #DDEFF1  selection background
+ *   -fk-ground     #F4F6F7  window background
+ *   -fk-surface    #FFFFFF  tables, details, dialogs
+ *   -fk-ink        #1D2733  text
+ *   -fk-muted      #5E6875  secondary text
+ *   -fk-line       #DCE1E6  hairlines and borders
+ *   -fk-accent     #013F71  brand navy: primary action, focus, selected radio, wordmark
+ *   -fk-link       #0052A5  brand blue: links, primary hover, info
+ *   -fk-tint       #E5EDF5  brand blue tint: selection, info banner
+ *   -fk-brand-red  #DC0032  header stripe ONLY — never an interactive or error state
+ *   -fk-problem-ink #B3001F errors; darker than brand red so the two can be told apart
  */
 
 .root {
@@ -23,15 +28,19 @@
     -fk-line: #DCE1E6;
     -fk-line-soft: #EDF0F3;
     -fk-hover: #F3F6F7;
-    -fk-accent: #0E6B76;
-    -fk-accent-hover: #0B5862;
-    -fk-accent-pressed: #08464E;
-    -fk-tint: #DDEFF1;
+    -fk-accent: #013F71;
+    -fk-accent-hover: #0052A5;
+    -fk-accent-pressed: #002E54;
+    -fk-link: #0052A5;
+    -fk-tint: #E5EDF5;
+    -fk-tint-soft: #EEF3F8;
+    -fk-highlight: #C9DAEC;
+    -fk-brand-red: #DC0032;
     -fk-warning-ink: #6E4A00;
     -fk-warning-bg: #FFF3D6;
     -fk-warning-line: #F0DCA6;
-    -fk-problem-ink: #9F2A1F;
-    -fk-problem-bg: #FBE7E5;
+    -fk-problem-ink: #B3001F;
+    -fk-problem-bg: #FCE8EC;
 
     /* Modena's own variables, so everything we don't restyle still matches. */
     -fx-base: #F4F6F7;
@@ -41,9 +50,9 @@
     -fx-accent: -fk-accent;
     -fx-default-button: -fk-accent;
     -fx-focus-color: -fk-accent;
-    -fx-faint-focus-color: #0E6B7622;
+    -fx-faint-focus-color: #013F7122;
     -fx-selection-bar: -fk-tint;
-    -fx-selection-bar-non-focused: #E8F1F2;
+    -fx-selection-bar-non-focused: -fk-tint-soft;
     -fx-selection-bar-text: -fk-ink;
     -fx-text-base-color: -fk-ink;
     -fx-text-background-color: -fk-ink;
@@ -106,7 +115,7 @@
 }
 
 .hyperlink {
-    -fx-text-fill: -fk-accent;
+    -fx-text-fill: -fk-link;
     -fx-border-color: transparent;
     -fx-underline: false;
     -fx-padding: 2 4;
@@ -117,26 +126,43 @@
 }
 
 .hyperlink:visited {
-    -fx-text-fill: -fk-accent;
+    -fx-text-fill: -fk-link;
 }
 
 /* ---------------------------------------------------------------------------------------------- */
 /* Window chrome: header, banner, status bar                                                      */
 /* ---------------------------------------------------------------------------------------------- */
 
+/* White bar with a 3 px brand-red stripe along the top — a nod to gov.pl, deliberately not the full
+   red bar, so the app is not mistaken for an official Ministry tool. */
 .app-header {
     -fx-background-color: -fk-surface;
-    -fx-border-color: transparent transparent -fk-line transparent;
-    -fx-padding: 10 16 10 16;
+    -fx-border-color: -fk-brand-red transparent -fk-line transparent;
+    -fx-border-width: 3 0 1 0;
+    -fx-padding: 7 16 10 16;
     -fx-spacing: 8;
     -fx-alignment: center-left;
 }
 
 .banner {
-    -fx-background-color: -fk-warning-bg;
-    -fx-border-color: transparent transparent -fk-warning-line transparent;
-    -fx-text-fill: -fk-warning-ink;
+    -fx-background-color: -fk-tint;
+    -fx-border-color: transparent transparent -fk-line transparent;
+    -fx-text-fill: -fk-accent;
     -fx-padding: 7 16 7 16;
+    -fx-graphic-text-gap: 8;
+}
+
+/* Filled circle with a knocked-out "i" (inner paths wind the other way, so they cut holes). */
+.info-icon {
+    -fx-shape: "M8 0a8 8 0 1 1 0 16a8 8 0 1 1 0-16z M9 4.5a1 1 0 1 0-2 0a1 1 0 1 0 2 0z M7 7v5h2V7z";
+    -fx-scale-shape: true;
+    -fx-background-color: -fk-accent;
+    -fx-min-width: 14px;
+    -fx-pref-width: 14px;
+    -fx-max-width: 14px;
+    -fx-min-height: 14px;
+    -fx-pref-height: 14px;
+    -fx-max-height: 14px;
 }
 
 .status-bar {
@@ -165,21 +191,25 @@
     -fx-background-insets: 0, 1;
     -fx-background-radius: 6, 5;
     -fx-padding: 6 14 6 14;
-    -fx-text-fill: -fk-ink;
+    -fx-text-fill: -fk-accent;
     -fx-cursor: hand;
 }
 
 .button:hover {
-    -fx-background-color: #C7CED6, -fk-hover;
+    -fx-background-color: -fk-line, -fk-tint;
 }
 
 .button:pressed {
-    -fx-background-color: #B9C1CA, #E9EDF0;
+    -fx-background-color: #B9C1CA, -fk-highlight;
 }
 
 .button:focused {
     -fx-background-color: -fk-accent, -fk-surface;
     -fx-background-insets: 0, 1.5;
+}
+
+.button:focused:hover {
+    -fx-background-color: -fk-accent, -fk-tint;
 }
 
 .button.primary,
@@ -202,8 +232,20 @@
 
 .button.primary:focused,
 .button:default:focused {
-    -fx-background-color: -fk-accent-pressed, -fk-accent;
-    -fx-background-insets: 0, 2;
+    /* 2 px navy ring, 2 px away from the button (drawn outside its bounds). */
+    -fx-background-color: -fk-accent, -fk-surface, -fk-accent;
+    -fx-background-insets: -4, -2, 0;
+    -fx-background-radius: 10, 8, 6;
+}
+
+.button.primary:focused:hover,
+.button:default:focused:hover {
+    -fx-background-color: -fk-accent, -fk-surface, -fk-accent-hover;
+}
+
+.button.primary:focused:pressed,
+.button:default:focused:pressed {
+    -fx-background-color: -fk-accent, -fk-surface, -fk-accent-pressed;
 }
 
 .button:disabled {
@@ -352,7 +394,7 @@
     -fx-background-insets: 0;
     -fx-padding: 1 0 1 0;
     -fx-text-fill: -fk-ink;
-    -fx-highlight-fill: #BFE0E4;
+    -fx-highlight-fill: -fk-highlight;
     -fx-highlight-text-fill: -fk-ink;
 }
 
@@ -365,7 +407,7 @@
     -fx-background-color: -fk-line, -fk-surface;
     -fx-background-insets: 0, 1;
     -fx-background-radius: 6, 5;
-    -fx-highlight-fill: #BFE0E4;
+    -fx-highlight-fill: -fk-highlight;
     -fx-highlight-text-fill: -fk-ink;
 }
 
@@ -411,7 +453,7 @@
 }
 
 .radio-button:focused > .radio {
-    -fx-effect: dropshadow(gaussian, #0E6B7655, 4, 0.5, 0, 0);
+    -fx-effect: dropshadow(gaussian, #013F7155, 4, 0.5, 0, 0);
 }
 
 /* ---------------------------------------------------------------------------------------------- */

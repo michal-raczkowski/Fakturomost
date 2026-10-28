@@ -13,3 +13,6 @@ mvnw.cmd    text eol=crlf
 
 demo-data/** -text
 *.ttf binary
+*.png binary
+*.ico binary
+*.gif binary
