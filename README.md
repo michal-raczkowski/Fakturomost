@@ -13,7 +13,7 @@ Open-source desktop app and CLI to import, browse, validate and export Polish **
 ![JavaFX](https://img.shields.io/badge/UI-JavaFX-0E6B76.svg)
 ![Status: experimental](https://img.shields.io/badge/status-experimental-E6A700.svg)
 
-[Features](#features) · [Quick start](#quick-start) · [CLI](#command-line-tool) · [Exports](#export-formats) · [Security](#security-and-privacy) · [Architecture](#architecture) · [Roadmap](#roadmap) · [Po polsku](#po-polsku)
+[Features](#features) · [Download](#download) · [Build from source](#quick-start-from-source) · [CLI](#command-line-tool) · [Exports](#export-formats) · [Security](#security-and-privacy) · [Architecture](#architecture) · [Roadmap](#roadmap) · [Po polsku](#po-polsku)
 
 <img src="docs/images/demo.gif" width="900" alt="Fakturomost demo: importing a folder of KSeF invoices, reading the import report, opening a correction invoice, searching, and exporting four invoices to a CSV file for Excel">
 
@@ -59,7 +59,8 @@ What works today (see the [roadmap](#roadmap) for what's next):
 **Export**
 - 📊 **CSV for Excel (Polish settings)**: `;` separator, decimal comma, UTF-8 BOM so Polish letters display correctly
 - 🧮 **CSV, standard** (RFC 4180 style) and **JSON** (versioned, documented format) for other software and scripts
-- 🗂️ **Original XML**, byte-for-byte unchanged, into one **ZIP** or a **folder** (files named by KSeF number)
+- ☑️ Export the **selected** invoices or **all invoices the filters show**
+- 🗂️ **Original XML**, byte-for-byte unchanged, into one **ZIP** or a **folder** (files named by KSeF number) — also for documents in formats Fakturomost cannot read, such as FA(2)
 - 🛡️ **CSV formula-injection protection**, and Fakturomost never overwrites a file without asking
 
 **Also**
@@ -76,11 +77,25 @@ What works today (see the [roadmap](#roadmap) for what's next):
   </tr>
   <tr>
     <td width="50%"><img src="docs/images/screenshot-filters.png" alt="Search for 'kawiarnia' showing 2 of 7 invoices"><br><sub><b>Search and filters</b> — text, NIP, dates, amounts, type</sub></td>
-    <td width="50%"><img src="docs/images/screenshot-export.png" alt="Export dialog with CSV, JSON and original XML formats and a warning that exported files are not encrypted"><br><sub><b>Export</b> — CSV for Excel, CSV, JSON or original XML</sub></td>
+    <td width="50%"><img src="docs/images/screenshot-export.png" alt="Export dialog: selected or all shown invoices, CSV, JSON or original XML, and a warning that exported files are not encrypted"><br><sub><b>Export</b> — selected or all shown invoices, as CSV for Excel, CSV, JSON or original XML</sub></td>
   </tr>
 </table>
 
-## Quick start
+## Download
+
+Test builds for **Windows** and **Linux** are published on the [Releases](https://github.com/michalraczkowski/fakturomost/releases) page as pre-releases. They are portable: **Java is included**, nothing needs to be installed.
+
+| System | File | How to start |
+|---|---|---|
+| Windows 10/11 (x64) | `Fakturomost-<version>-windows-x64.zip` | Unzip, run `Fakturomost.exe` |
+| Linux (x64, GTK 3 desktop) | `Fakturomost-<version>-linux-x64.tar.gz` | `tar xzf …`, run `Fakturomost/bin/Fakturomost` |
+
+The demo data is included: click **Import folder…** and choose the `demo-data` folder next to the program.
+
+> [!NOTE]
+> The builds are not code-signed yet, so Windows SmartScreen may show "Windows protected your PC" — click **More info → Run anyway**. `Fakturomost-console.exe` starts the same app with a console window that shows error messages. A proper installer is planned (see [roadmap](#roadmap)).
+
+## Quick start (from source)
 
 **Requirements:** JDK 21 (e.g. [Eclipse Temurin](https://adoptium.net/)) and Git. Maven is included as the Maven Wrapper. No KSeF account or credentials are needed.
 
@@ -100,7 +115,7 @@ cd fakturomost
 
 Or run `dev.michalraczkowski.fakturomost.desktop.Launcher` from your IDE. Then click **Import folder…** and choose the [`demo-data`](demo-data/README.md) folder of this repository.
 
-A Windows installer that bundles its own Java runtime is planned (see [roadmap](#roadmap)).
+To build the portable app yourself: `bash packaging/package.sh` after the Maven package step (see the script header). CI does the same for Windows and Linux in [`.github/workflows/package.yml`](.github/workflows/package.yml).
 
 ## Command-line tool
 
@@ -273,7 +288,8 @@ Design principles: the core knows nothing about Spring, JavaFX, databases or the
 | JSON / CSV | Jackson 3 streaming / own RFC 4180 writer with injection protection |
 | Tests | JUnit 5, AssertJ, ArchUnit — 340+ automated tests |
 | CI | GitHub Actions on **Linux and Windows** |
-| Planned | SQLite with encryption, Windows DPAPI, `jpackage` installer |
+| Packaging | `jpackage` portable builds with a bundled runtime, built on GitHub Actions (Windows + Linux) |
+| Planned | SQLite with encryption, Windows DPAPI, Windows installer |
 
 ## Roadmap
 
@@ -282,9 +298,9 @@ Design principles: the core knows nothing about Spring, JavaFX, databases or the
 | 1 | Project foundation: modules, Spring without HTTP, CI on Linux + Windows | ✅ Done |
 | 2 | Invoice processing: FA(3) parsing, offline XSD validation, XML/ZIP import, dedup, CSV/JSON/XML export | ✅ Done |
 | 3 | Command-line tool: `inspect`, `convert` | ✅ Done |
-| 4 | Desktop app: import, invoice table, details, filters, export | 🚧 In progress — core features done, polishing |
-| 5 | Secure local storage: encrypted SQLite, DPAPI-protected key, data survives restarts | ⏭️ Next |
-| 6 | Windows installer with bundled Java runtime and demo data | 📋 Planned |
+| 4 | Desktop app: import, invoice table, details, filters, export | ✅ Done |
+| 5 | Secure local storage: encrypted SQLite, DPAPI-protected key, data survives restarts | 🚧 Next up |
+| 6 | Windows installer with bundled Java runtime and demo data | 🧪 Portable Windows/Linux builds available; installer planned |
 | 7 | Hardening: encrypted backup and restore, threat model, documentation | 📋 Planned |
 | 8 | Optional KSeF API synchronization (TEST/DEMO environments only, outside the default build) | 💡 Optional |
 
@@ -306,7 +322,7 @@ No. It has no server and no telemetry, and it does not connect to KSeF in this v
 Not yet. The current version keeps data in memory and is meant for evaluation with synthetic or KSeF test-environment data. Encrypted storage and backups come first.
 
 **Which invoice formats are supported?**<br>
-KSeF **FA(3)** (schema `1-0E`). Other formats such as FA(2) or FA_RR are recognized, kept and reported as *Unsupported*. PDF visualisations are rejected with a hint to download XML.
+KSeF **FA(3)** (schema `1-0E`). Other formats such as FA(2) or FA_RR are reported as *Unsupported* and kept unchanged: the desktop app lists them under "documents in another format" and can export their original XML. PDF visualisations are rejected with a hint to download XML.
 
 **Where does the KSeF number come from?**<br>
 It is not inside the invoice XML. KSeF names downloaded files after it, so Fakturomost reads it from the file name and accepts it only if the format, date, checksum and seller NIP all match.

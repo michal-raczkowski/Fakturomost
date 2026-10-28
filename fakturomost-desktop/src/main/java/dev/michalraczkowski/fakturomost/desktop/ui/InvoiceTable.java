@@ -24,7 +24,7 @@ import javafx.scene.control.TableView;
 final class InvoiceTable {
 
     private static final String EMPTY_TEXT = "No invoices yet. Use \"Import folder…\" or \"Import files…\", "
-            + "or drop files here.\nTo try it out, import the demo-data folder of the repository.";
+            + "or drop files here.\nTo try it out, import the demo-data folder (next to the program, or in the repository).";
 
     private final Label emptyPlaceholder = new Label(EMPTY_TEXT);
     private final Label noMatchPlaceholder = new Label("No invoices match the filters. Press Esc in a filter field or \"Clear\" to see all.");
@@ -60,6 +60,11 @@ final class InvoiceTable {
 
     int size() {
         return rows.size();
+    }
+
+    /** Every row the table shows (after filtering), in the order shown. */
+    List<InvoiceRow> shownInDisplayOrder() {
+        return List.copyOf(view.getItems());
     }
 
     /** The selected rows in the order shown (not the order they were clicked). */

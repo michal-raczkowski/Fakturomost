@@ -40,6 +40,14 @@ public final class InMemoryDocumentStore implements DocumentStore {
                 .toList();
     }
 
+    @Override
+    public synchronized List<OtherDocument> findOtherDocuments() {
+        return documents.values().stream()
+                .map(OtherDocument::of)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
     /** Snapshot of all documents in import order. */
     public synchronized List<StoredDocument> all() {
         return List.copyOf(documents.values());

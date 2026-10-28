@@ -5,14 +5,19 @@ import dev.michalraczkowski.fakturomost.core.application.ImportProgress;
 import dev.michalraczkowski.fakturomost.core.application.ImportResult;
 import dev.michalraczkowski.fakturomost.core.application.InvoiceEntry;
 import dev.michalraczkowski.fakturomost.core.application.InvoiceQuery;
+import dev.michalraczkowski.fakturomost.core.application.OtherDocument;
+import dev.michalraczkowski.fakturomost.core.domain.DocumentId;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.ExportFormat;
+import dev.michalraczkowski.fakturomost.desktop.ui.model.ExportScope;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.FilterInput;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.Formats;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.ImportSummary;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.InvoiceDetails;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.InvoiceRow;
 import dev.michalraczkowski.fakturomost.desktop.ui.model.Notices;
+import dev.michalraczkowski.fakturomost.desktop.ui.model.OtherDocumentRow;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystemException;
 import java.nio.file.Path;
@@ -75,7 +80,8 @@ public final class MainWindow {
     private final Hyperlink lastResults = new Hyperlink("Show import results");
     private final Button importFiles = new Button("Import files…");
     private final Button importFolder = new Button("Import folder…");
-    private final Button exportSelected = new Button("Export selected…");
+    private final Button exportButton = new Button("Export…");
+    private final Hyperlink otherDocumentsLink = new Hyperlink();
 
     private final AtomicBoolean cancelRequested = new AtomicBoolean();
     private boolean busy;
@@ -86,6 +92,10 @@ public final class MainWindow {
     private long detailsGeneration;
     /** Same for searches: only the newest filter's result reaches the table. */
     private long searchGeneration;
+    /** Whether the table currently shows a filtered subset (for the export dialog's wording). */
+    private boolean filteredView;
+    /** Stored documents in formats Fakturomost cannot read, as of the last refresh. */
+    private List<OtherDocument> otherDocuments = List.of();
 
     private MainWindow(Stage stage, UiServices services, Background background) {
         this.stage = stage;
@@ -102,7 +112,7 @@ public final class MainWindow {
     private void build() {
         importFiles.setOnAction(e -> chooseFilesToImport());
         importFolder.setOnAction(e -> chooseFolderToImport());
-        exportSelected.setOnAction(e -> exportSelected());
+        exportButton.setOnAction(e -> export());
         Button about = new Button("About");
         about.setOnAction(e -> showAbout());
         importFolder.getStyleClass().add("primary"); // the one filled button: where most sessions start
@@ -114,7 +124,7 @@ public final class MainWindow {
         gap.setMinWidth(16);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(wordmark, version, gap, importFolder, importFiles, exportSelected, spacer, about);
+        HBox header = new HBox(wordmark, version, gap, importFolder, importFiles, exportButton, spacer, about);
         header.getStyleClass().add("app-header");
 
         Label banner = new Label(Notices.BANNER);
@@ -145,19 +155,24 @@ public final class MainWindow {
         progress.managedProperty().bind(progress.visibleProperty());
         cancel.managedProperty().bind(cancel.visibleProperty());
         lastResults.managedProperty().bind(lastResults.visibleProperty());
+        otherDocumentsLink.setVisible(false);
+        otherDocumentsLink.managedProperty().bind(otherDocumentsLink.visibleProperty());
+        otherDocumentsLink.setMinWidth(Region.USE_PREF_SIZE);
+        otherDocumentsLink.setOnAction(e -> OtherDocumentsWindow.show(stage,
+                otherDocuments.stream().map(OtherDocumentRow::of).toList(), this::exportOtherDocuments));
         selection.setMinWidth(Region.USE_PREF_SIZE);
         lastResults.setMinWidth(Region.USE_PREF_SIZE);
         cancel.setMinWidth(Region.USE_PREF_SIZE);
         HBox.setHgrow(status, Priority.ALWAYS);
         status.setMaxWidth(Double.MAX_VALUE);
-        HBox statusBar = new HBox(8, progress, status, selection, lastResults, cancel);
+        HBox statusBar = new HBox(8, progress, status, selection, otherDocumentsLink, lastResults, cancel);
         statusBar.getStyleClass().add("status-bar");
 
         BorderPane root = new BorderPane(split, new VBox(header, banner), null, statusBar, null);
         Scene scene = new Scene(root, 1280, 820);
         scene.getStylesheets().add(Theme.STYLESHEET);
         scene.getAccelerators().put(new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN), this::chooseFilesToImport);
-        scene.getAccelerators().put(new KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN), this::exportSelected);
+        scene.getAccelerators().put(new KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN), this::export);
         scene.getAccelerators().put(new KeyCodeCombination(KeyCode.F, KeyCombination.SHORTCUT_DOWN), filters::focusSearch);
         acceptDroppedFiles(scene);
 
@@ -194,7 +209,7 @@ public final class MainWindow {
         int selected = table.view().getSelectionModel().getSelectedIndices().size();
         importFiles.setDisable(busy);
         importFolder.setDisable(busy);
-        exportSelected.setDisable(busy || selected == 0);
+        exportButton.setDisable(busy || table.size() == 0);
         selection.setText(selected == 0 ? "" : selected + (selected == 1 ? " invoice" : " invoices") + " selected");
     }
 
@@ -302,12 +317,16 @@ public final class MainWindow {
             protected SearchOutcome call() {
                 List<InvoiceRow> rows = services.catalog().search(query).stream().map(InvoiceRow::of).toList();
                 int total = filtered ? services.catalog().search(InvoiceQuery.all()).size() : rows.size();
-                return new SearchOutcome(rows, total);
+                return new SearchOutcome(rows, total, services.catalog().otherDocuments());
             }
         };
         background.run(task, outcome -> {
             if (generation == searchGeneration) {
                 table.setRows(outcome.rows(), filtered && outcome.total() > 0);
+                filteredView = filtered;
+                otherDocuments = outcome.otherDocuments();
+                otherDocumentsLink.setText(OtherDocumentRow.linkText(otherDocuments.size()));
+                otherDocumentsLink.setVisible(!otherDocuments.isEmpty());
                 filters.setCount(outcome.total() == 0 ? "" : FilterInput.countText(outcome.rows().size(), outcome.total(), filtered));
                 updateControls();
             }
@@ -318,7 +337,7 @@ public final class MainWindow {
         });
     }
 
-    private record SearchOutcome(List<InvoiceRow> rows, int total) {
+    private record SearchOutcome(List<InvoiceRow> rows, int total, List<OtherDocument> otherDocuments) {
     }
 
     // --- Details ---------------------------------------------------------------------------------
@@ -348,22 +367,56 @@ public final class MainWindow {
 
     // --- Export ----------------------------------------------------------------------------------
 
-    private void exportSelected() {
+    /** "Export…": the selected rows or all rows the filters show, in any format. */
+    private void export() {
+        if (busy || table.size() == 0) {
+            return;
+        }
         List<InvoiceRow> selected = table.selectedInDisplayOrder();
-        if (busy || selected.isEmpty()) {
+        List<InvoiceRow> shown = table.shownInDisplayOrder();
+        Optional<ExportDialog.Choice> choice =
+                ExportDialog.chooseForInvoices(stage, selected.size(), shown.size(), filteredView, lastFormat);
+        if (choice.isEmpty()) {
             return;
         }
-        Optional<ExportFormat> chosen = ExportDialog.chooseFormat(stage, selected.size(), lastFormat);
-        if (chosen.isEmpty()) {
-            return;
-        }
-        ExportFormat format = chosen.get();
+        ExportFormat format = choice.get().format();
         lastFormat = format;
+        List<InvoiceEntry> invoices = (choice.get().scope() == ExportScope.SELECTED ? selected : shown).stream()
+                .map(InvoiceRow::entry).toList();
         Path location = chooseExportLocation(format);
         if (location == null) {
             return;
         }
-        runExport(format, selected.stream().map(InvoiceRow::entry).toList(), format.normalizeTarget(location), false);
+        Path target = format.normalizeTarget(location);
+        runExport(target, format, format.doneMessage(invoices.size(), target), false,
+                overwrite -> format.export(services.exports(), invoices, target, overwrite));
+    }
+
+    /** The originals of every document in another format (FA(2), ...), as ZIP or into a folder. */
+    private void exportOtherDocuments() {
+        List<OtherDocument> documents = otherDocuments;
+        if (busy || documents.isEmpty()) {
+            return;
+        }
+        Optional<ExportFormat> chosen = ExportDialog.chooseForOriginals(stage, documents.size());
+        if (chosen.isEmpty()) {
+            return;
+        }
+        ExportFormat format = chosen.get();
+        Path location = chooseExportLocation(format);
+        if (location == null) {
+            return;
+        }
+        Path target = format.normalizeTarget(location);
+        List<DocumentId> ids = documents.stream().map(OtherDocument::id).toList();
+        runExport(target, format, format.doneMessage(documents.size(), "document", target), false,
+                overwrite -> services.exports().exportOriginals(ids, target, overwrite));
+    }
+
+    /** One export attempt; {@code overwrite} is only ever {@code true} after the user said "Replace". */
+    @FunctionalInterface
+    private interface ExportJob {
+        List<Path> write(boolean overwrite) throws IOException;
     }
 
     private Path chooseExportLocation(ExportFormat format) {
@@ -396,18 +449,17 @@ public final class MainWindow {
      * Never replaces anything on the first try; if core reports an existing target, the user is asked
      * and only a "Replace" answer repeats the export with {@code overwrite = true}.
      */
-    private void runExport(ExportFormat format, List<InvoiceEntry> invoices, Path target, boolean overwrite) {
+    private void runExport(Path target, ExportFormat format, String done, boolean overwrite, ExportJob job) {
         Task<List<Path>> task = new Task<>() {
             @Override
             protected List<Path> call() throws Exception {
-                return format.export(services.exports(), invoices, target, overwrite);
+                return job.write(overwrite);
             }
         };
         setBusy(true, false);
         status.setText("Exporting…");
         background.run(task, written -> {
             setBusy(false, false);
-            String done = format.doneMessage(invoices.size(), target);
             status.setText(done);
             Alert alert = alert(Alert.AlertType.INFORMATION, "Export finished", done);
             alert.setHeaderText("Export finished");
@@ -420,7 +472,7 @@ public final class MainWindow {
             if (error instanceof FileAlreadyExistsException && !overwrite) {
                 status.setText("The target already exists — waiting for your answer.");
                 if (confirmReplace(format.overwriteQuestion(target))) {
-                    runExport(format, invoices, target, true);
+                    runExport(target, format, done, true, job);
                 } else {
                     status.setText("Export cancelled; nothing was replaced.");
                 }

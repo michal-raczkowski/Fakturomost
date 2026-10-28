@@ -146,6 +146,11 @@ class InvoiceImporterTest {
             public List<InvoiceEntry> findInvoices(InvoiceQuery query) {
                 return List.of();
             }
+
+            @Override
+            public List<OtherDocument> findOtherDocuments() {
+                return List.of();
+            }
         };
 
         ImportResult result = new InvoiceImporter(new Fa3Parser(), broken).importDocument(SourceDocument.of(KSEF_NAME, VAT));
@@ -176,6 +181,11 @@ class InvoiceImporterTest {
 
             @Override
             public List<InvoiceEntry> findInvoices(InvoiceQuery query) {
+                return List.of();
+            }
+
+            @Override
+            public List<OtherDocument> findOtherDocuments() {
                 return List.of();
             }
         };

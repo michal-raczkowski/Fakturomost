@@ -39,6 +39,16 @@ public final class InvoiceCatalog {
                 .toList();
     }
 
+    /**
+     * Stored documents that are not FA(3) invoices (reported as {@code Unsupported} on import), sorted
+     * by source name then ID. They have no invoice data but can be exported as original XML.
+     */
+    public List<OtherDocument> otherDocuments() {
+        return store.findOtherDocuments().stream()
+                .sorted(Comparator.comparing(OtherDocument::sourceName).thenComparing(d -> d.id().sha256Hex()))
+                .toList();
+    }
+
     /** The full stored document, including the original bytes, for details and XML export. */
     public Optional<StoredDocument> find(DocumentId id) {
         return store.find(Objects.requireNonNull(id, "id"));
